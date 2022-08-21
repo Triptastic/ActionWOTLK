@@ -431,22 +431,6 @@ A[3] = function(icon, isMulti)
 				end 
 			end 		
 		end 
- 
-    --[[if not Player:IsStealthed() then  
-        local Healthstone = GetToggle(2, "HSHealth") 
-        if Healthstone >= 0 then 
-            local HealthStoneObject = DetermineUsableObject(player, true, nil, true, nil, A.HSGreater3, A.HSGreater2, A.HSGreater1, A.HS3, A.HS2, A.HS1, A.HSLesser3, A.HSLesser2, A.HSLesser1, A.HSMajor3, A.HSMajor2, A.HSMajor1, A.HSMinor3, A.HSMinor2, A.HSMinor1, A.HSMaster1, A.HSMaster2, A.HSMaster3)
-            if HealthStoneObject then             
-                if Healthstone >= 100 then -- AUTO 
-                    if Unit(player):TimeToDie() <= 9 and Unit(player):HealthPercent() <= 40 then 
-                        return HealthStoneObject:Show(icon)    
-                    end 
-                elseif Unit(player):HealthPercent() <= Healthstone then 
-                    return HealthStoneObject:Show(icon)                                 
-                end 
-            end 
-        end         
-    end ]]
 
 	if UsePotions and combatTime > 2 then
 		--Living Action
