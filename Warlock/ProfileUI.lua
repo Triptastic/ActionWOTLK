@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v0.01 (20 August 2022)",
+    DateTime = "v1.00 (21 August 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -58,7 +58,9 @@ A.Data.ProfileUI = {
                     E = "Dropdown",                                                         
                     OT = {
 						{ text = "Healing Potion", value = "HealingPotion" },
-						{ text = "Haste Potion", value = "HastePotion" },						
+						{ text = "Limited Invulnerability", value = "LimitedInvulnerabilityPotion" },
+						{ text = "Living Action", value = "LivingActionPotion" },
+						{ text = "Restorative", value = "RestorativePotion" },						
                     },
                     DB = "PotionController",
                     DBV = "HealingPotion",
@@ -119,10 +121,11 @@ A.Data.ProfileUI = {
                     OT = {
 						{ text = "Affliction", value = "Affliction" },
 						{ text = "Demonology", value = "Demonology" },
-						{ text = "Destruction", value = "Destruction" },					
+						{ text = "Destruction", value = "Destruction" },
+						{ text = "Automatic", value = "Auto" },						
                     },
                     DB = "SpecSelect",
-                    DBV = "Affliction",
+                    DBV = "Auto",
                     L = { 
                         ANY = "Specialisation",
                     }, 
@@ -185,6 +188,38 @@ A.Data.ProfileUI = {
                 },				
 			},
 			{
+                { -- DrainLife
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "DrainLifeHP",
+                    DBV = 30,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Drain Life Health (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Drain Life.", 
+                    },                     
+                    M = {},
+                },	
+                { -- Soulshardcap
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 30,                            
+                    DB = "Soulshardcap",
+                    DBV = 15,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Soul Shards to gather",
+                    },
+                    TT = { 
+                        ANY = "Number of Soul Shards to try and get before no longer using Drain Soul (independent of Affliction Drain Soul execute).", 
+                    },                     
+                    M = {},
+                },				
+			},			
+			{
 				{ -- Curse
                     E = "Dropdown",                                                         
                     OT = {
@@ -210,7 +245,15 @@ A.Data.ProfileUI = {
                 {
                     E = "LayoutSpace",                                                                         
                 },
-            },			
+            },	
+			{ -- MACRO LABEL
+                {
+                    E = "Label",
+                    L = {
+                        ANY = "AoE detection currently only works with pet thanks to limitations in WoW API. Please drag the following pet abilities to ANY slot on your action bar (does not need to be bound): Cleave (Felguard), Lash of Pain (Succubus/Incubus), Torment (Voidwalker), Shadow Bite (Felhunter). Currently, Felguard and Felhunter are not working due to needing updates in PetLib. If this message is still here on release, please let me know so I can check if it's updated!",
+                    },
+                },
+            },		
 			{ -- AFFLICTION HEADER
                 {
                     E = "Header",
@@ -219,6 +262,14 @@ A.Data.ProfileUI = {
                     },
                 },
             },
+			{ -- LABEL
+                {
+                    E = "Label",
+                    L = {
+                        ANY = "Manually target each enemy to apply DoTs (auto-target is far too wonky to be safe thanks to WoW API limitations). Seed of Corruption will only be used if your pet is in melee range and you have one of the supported spells on your action bar as above, or if you're close enough to the enemies yourself. Otherwise, simply manually spam Seed of Corruption in enemy packs.",
+                    },
+                },
+            },			
             { -- LAYOUT SPACE   
                 {
                     E = "LayoutSpace",                                                                         
@@ -232,6 +283,19 @@ A.Data.ProfileUI = {
                     },
                 },
             },
+			{ -- MACRO LABEL
+                {
+                    E = "Label",
+                    L = {
+                        ANY = "Full Metamorphosis support - recommend pressing Metamorphosis manually to activate the burst rotation. Use near melee range at the start of a big AoE pull for big numbers.",
+                    },
+                },
+            },				
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
+            },			
 			{ -- DESTRUCTION HEADER
                 {
                     E = "Header",
@@ -239,6 +303,14 @@ A.Data.ProfileUI = {
                         ANY = " ====== DESTRUCTION ====== ",
                     },
                 },
-            },			
+            },
+			{ -- LABEL
+                {
+                    E = "Label",
+                    L = {
+                        ANY = "Keep an eye out for the message box that warns you wen Shadowfury is about to be used so that you can get your cursor in the correct spot. If the message box is in a weird spot, you can move it around by going to the main menu (Esc) -> Interface -> AddOns -> The Action Toaster -> Show Anchor.",
+                    },
+                },
+            },				
 		},
 }

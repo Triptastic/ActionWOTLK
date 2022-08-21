@@ -141,45 +141,15 @@ Action[Action.PlayerClass]                     = {
 	Conflagrate									= Create({ Type = "Spell", ID = 17962, useMaxRank = true        }),	
 	Shadowfury									= Create({ Type = "Spell", ID = 30283, useMaxRank = true        }),	
 	ChaosBolt									= Create({ Type = "Spell", ID = 50796, useMaxRank = true        }),	
-	ImmolationAura									= Create({ Type = "Spell", ID = 50589, useMaxRank = true        }),	
-	ShadowCleave									= Create({ Type = "Spell", ID = 50581, useMaxRank = true        }),		
+	ImmolationAura								= Create({ Type = "Spell", ID = 50589, useMaxRank = true        }),	
+	ShadowCleave								= Create({ Type = "Spell", ID = 50581, useMaxRank = true        }),		
 	Shadowflame									= Create({ Type = "Spell", ID = 47897, useMaxRank = true        }),		
 
-	CreateFirestoneLesser                    = Create({ Type = "Spell", ID = 6366		}),
-    CreateFirestone                            = Create({ Type = "Spell", ID = 17951	}),
-    CreateFirestoneGreater                    = Create({ Type = "Spell", ID = 17952		}),
-    CreateFirestoneMajor                    = Create({ Type = "Spell", ID = 17953		}),
-    CreateHealthstoneMinor                    = Create({ Type = "Spell", ID = 6201		}),
-    CreateHealthstoneLesser                    = Create({ Type = "Spell", ID = 6202		}),
-    CreateHealthstone                        = Create({ Type = "Spell", ID = 5699		}),
-    CreateHealthstoneGreater                = Create({ Type = "Spell", ID = 11729		}),
-    CreateHealthstoneMajor                    = Create({ Type = "Spell", ID = 11730		}),
-    CreateSoulstoneMinor                    = Create({ Type = "Spell", ID = 693			}),
-    CreateSoulstoneLesser                    = Create({ Type = "Spell", ID = 20752		}),
-    CreateSoulstone                            = Create({ Type = "Spell", ID = 20755	}),
-    CreateSoulstoneGreater                    = Create({ Type = "Spell", ID = 20756		}),
-    CreateSoulstoneMajor                    = Create({ Type = "Spell", ID = 20757		}),
-    CreateSpellstone                        = Create({ Type = "Spell", ID = 2362		}),
-    CreateSpellstoneGreater                    = Create({ Type = "Spell", ID = 17727	}),
-    CreateSpellstoneMajor                    = Create({ Type = "Spell", ID = 17728		}),
     -- Potions
     MajorManaPotion                            = Create({ Type = "Potion", ID = 13444	}),
     -- Hidden Items    
     -- Note: Healthstone items created in Core.lua
-    MajorFirestone                            = Create({ Type = "Item",  ID = 13701,     Hidden = true	}),
-    GreaterFirestone                        = Create({ Type = "Item",  ID = 13700,     Hidden = true	}),
-    Firestone                                = Create({ Type = "Item",  ID = 13699,     Hidden = true	}),
-    LesserFirestone                            = Create({ Type = "Item",  ID = 1254,     Hidden = true	}),
-    MajorSoulstone                            = Create({ Type = "Item",  ID = 16896,     Hidden = true	}),
-    GreaterSoulstone                        = Create({ Type = "Item",  ID = 16895,     Hidden = true	}),
-    Soulstone                                = Create({ Type = "Item",  ID = 16893,     Hidden = true	}),
-    LesserSoulstone                            = Create({ Type = "Item",  ID = 16892,     Hidden = true	}),
-    MinorSoulstone                            = Create({ Type = "Item",  ID = 5232,     Hidden = true	}),
-    MajorSpellstone                            = Create({ Type = "Item",  ID = 13603,     Hidden = true	}),
-    GreaterSpellstone                        = Create({ Type = "Item",  ID = 13602,     Hidden = true	}),
-    Spellstone                                = Create({ Type = "Item",  ID = 5522,     Hidden = true	}),
-    SoulShard                                = Create({ Type = "Item",  ID = 6265,     Hidden = true	}),
-    InfernalStone                            = Create({ Type = "Item",  ID = 5565,     Hidden = true	}),
+	SoulShard									= Create({ Type = "Item", ID = 6265      }),
 
 	--Glyphs
 
@@ -195,6 +165,10 @@ Action[Action.PlayerClass]                     = {
 	Torment										= Create({ Type = "Spell", ID = 3716, useMaxRank = true      }),
 	ShadowBite									= Create({ Type = "Spell", ID = 54049, useMaxRank = true      }),
 	Cleave										= Create({ Type = "Spell", ID = 30213, useMaxRank = true      }),
+	SpellLock									= Create({ Type = "Spell", ID = 19244, useMaxRank = true      }),
+	DevourMagic									= Create({ Type = "Spell", ID = 19505, useMaxRank = true      }),
+	FireShield									= Create({ Type = "Spell", ID = 2947, useMaxRank = true      }),
+	Seduction									= Create({ Type = "Spell", ID = 6358, useMaxRank = true      }),	
 	
     --Misc
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
@@ -204,22 +178,8 @@ Action[Action.PlayerClass]                     = {
 }
 
 local A                                     = setmetatable(Action[Action.PlayerClass], { __index = Action })
-Player:AddBag("SOUL_SHARD",     { itemID = A.SoulShard.ID                                                                                                                                                                        })
--- All items going from highest (1) to lowest rank 
-Player:AddBag("FIRESTONE_1",     { itemID = A.MajorFirestone.ID,     itemClassID = LE_ITEM_CLASS_ARMOR, itemSubClassID = LE_ITEM_ARMOR_GENERIC, isEquippableItem = true                                                         })
-Player:AddBag("FIRESTONE_2",     { itemID = A.GreaterFirestone.ID,     itemClassID = LE_ITEM_CLASS_ARMOR, itemSubClassID = LE_ITEM_ARMOR_GENERIC, isEquippableItem = true                                                         })
-Player:AddBag("FIRESTONE_3",     { itemID = A.Firestone.ID,             itemClassID = LE_ITEM_CLASS_ARMOR, itemSubClassID = LE_ITEM_ARMOR_GENERIC, isEquippableItem = true                                                         })
-Player:AddBag("FIRESTONE_4",     { itemID = A.LesserFirestone.ID,     itemClassID = LE_ITEM_CLASS_ARMOR, itemSubClassID = LE_ITEM_ARMOR_GENERIC, isEquippableItem = true                                                         })
-Player:AddBag("SPELLSTONE_1",     { itemID = A.MajorSpellstone.ID,     itemClassID = LE_ITEM_CLASS_ARMOR, itemSubClassID = LE_ITEM_ARMOR_GENERIC, isEquippableItem = true                                                         })
-Player:AddBag("SPELLSTONE_2",     { itemID = A.GreaterSpellstone.ID,     itemClassID = LE_ITEM_CLASS_ARMOR, itemSubClassID = LE_ITEM_ARMOR_GENERIC, isEquippableItem = true                                                         })
-Player:AddBag("SPELLSTONE_3",     { itemID = A.Spellstone.ID,         itemClassID = LE_ITEM_CLASS_ARMOR, itemSubClassID = LE_ITEM_ARMOR_GENERIC, isEquippableItem = true                                                         })
-Player:AddBag("SOULSTONE_1",     { itemID = A.MajorSoulstone.ID                                                                                                                                                                    })
-Player:AddBag("SOULSTONE_2",     { itemID = A.GreaterSoulstone.ID                                                                                                                                                                })
-Player:AddBag("SOULSTONE_3",     { itemID = A.Soulstone.ID                                                                                                                                                                        })
-Player:AddBag("SOULSTONE_4",     { itemID = A.LesserSoulstone.ID                                                                                                                                                                })
-Player:AddBag("SOULSTONE_5",     { itemID = A.MinorSoulstone.ID                                                                                                                                                                    })
-Player:AddInv("WL_OFF_HAND",     CONST.INVSLOT_OFFHAND, {                                                                                                                                                                     })
-Pet:AddActionsSpells(A.PlayerClass, { A.Torment, A.LashofPain, A.SpellLock, A.DispelMagic, A.DevourMagic, A.FireShield, A.Seduction, }) --Need to add A.ShadowBite, A.Cleave when lib updated for WOTLK
+Player:AddBag("SOUL_SHARD",     { itemID = A.SoulShard.ID})
+Pet:AddActionsSpells(A.PlayerClass, { A.Torment, A.LashofPain, A.SpellLock, A.DevourMagic, A.FireShield, A.Seduction, }) --Need to add A.ShadowBite, A.Cleave when lib updated for WOTLK
 Pet:AddTrackers(A.PlayerClass)
 
 local player = "player"
@@ -268,6 +228,9 @@ local Temp = {
     TotalAndMagKick                         = {"TotalImun", "DamageMagicImun", "KickImun"},
     DisablePhys                             = {"TotalImun", "DamagePhysImun", "Freedom", "CCTotalImun"},
     DisableMag                              = {"TotalImun", "DamageMagicImun", "Freedom", "CCTotalImun"},
+    AuraForCC                               = {"TotalImun", "DamageMagicImun", "Reflect", "CCTotalImun"},    
+    AuraForInterrupt                        = {"TotalImun", "DamageMagicImun", "Reflect", "CCTotalImun", "KickImun"},
+    AuraForFear                             = {"TotalImun", "DamageMagicImun", "Reflect", "CCTotalImun", "FearImun"},	
 	OpenerRotation							= false,	
 }
 
@@ -344,6 +307,80 @@ local function BestArmor()
 	end
 end
 
+local function GetSoulShards()
+    return Player:GetBag("SOUL_SHARD") and Player:GetBag("SOUL_SHARD").count or A.SoulShard:GetCount() or 0
+end 
+local SoulshardCount = GetSoulShards()
+
+local function GetHealthstonesByCastName(castName, checkHighRanks)
+    -- @return number
+    local count     
+    if checkHighRanks then 
+        for _, v in ipairs(Temp.CastHealthStoneToAllHisRankItems[castName]) do 
+            count = v:GetCount()
+            if count > 0 then 
+                return count
+            end 
+        end 
+    else         
+        for _, v in ipairs(Temp.CastHealthStoneToItems[castName]) do             
+            count = v:GetCount()
+            if count > 0 then 
+                return count
+            end 
+        end 
+    end
+    
+    return 0
+end 
+
+local function GetSoulstoneInBag()
+    -- @return itemID or nil 
+    for i = 1, #Temp.BagSoulstone do 
+        if Player:GetBag(Temp.BagSoulstone[i]) then 
+            return Player:GetBag(Temp.BagSoulstone[i]).itemID 
+        end 
+    end 
+end 
+
+local function CanDispel(unitID, isFriendly)
+    -- @return boolean 
+    -- Note: Only [3] APL
+    if A.DevourMagic:IsReady(unitID, true) and Pet:IsInRange(A.DevourMagic, unitID) then 
+        if isFriendly then 
+            if (AuraIsValid(unitID, "UseDispel", "Magic") or AuraIsValid(unitID, "UsePurge", "PurgeFriendly")) and Unit(pet):InCC() == 0 then 
+                return A.DevourMagic
+            end 
+        else 
+            if (AuraIsValid(unitID, "UsePurge", "PurgeHigh") or AuraIsValid(unitID, "UsePurge", "PurgeLow")) and Unit(pet):InCC() == 0 then 
+                return A.DevourMagic
+            end 
+        end 
+    end 
+end 
+
+local function CanInterrupt(unitID)
+    -- @return boolean 
+    -- Note: Only [3] APL
+	local useKick, useCC, _, notInterruptable, castRemainsTime = InterruptIsValid(unitID, nil, nil, false)
+	if (useKick or useCC) and castRemainsTime >= GetLatency() then 
+		if useKick and not notInterruptable and Pet:IsInRange(A.SpellLock, unitID) and A.SpellLock:IsReady(unitID, true) and A.SpellLock:AbsentImun(unitID, Temp.AuraForInterrupt) and Unit(pet):InCC() == 0 then 
+			return A.SpellLock   
+		end 
+		
+		if useCC and Unit(unitID):IsHumanoid() and castRemainsTime > A.Seduction:GetSpellCastTimeCache() + GetPing() and Pet:IsInRange(A.Seduction, unitID) and A.Seduction:IsReady(unitID, true) and A.Seduction:AbsentImun(unitID, Temp.AuraForCC) and Unit(unitID):IsControlAble("fear") and Unit(pet):InCC() == 0 then 
+			return A.Seduction        
+		end 
+	end 
+end 
+
+local function CanFear(unitID) 
+    -- @return boolean 
+    -- Note: Only [3] APL
+    if GetActiveDoTsCounter((A.Fear:Info())) == 0 and not A.Fear:IsSpellLastGCD() and not A.Fear:IsSpellInFlight() and A.Fear:IsLatenced() and A.Fear:IsReadyByPassCastGCD(unitID) and A.Fear:AbsentImun(unitID, Temp.AuraForFear) and not Unit(unitID):IsTotem() and Unit(unitID):IsControlAble("fear") and Unit(unitID):InCC() == 0 then 
+        return true 
+    end 
+end 
 
 --- ======= ACTION LISTS =======
 -- [3] Single Rotation
@@ -364,13 +401,37 @@ A[3] = function(icon, isMulti)
 		canCast = true
 	end
     
+	--Toaster AoE
+	if not A.Toaster:IsPlaying("TripToast") then
+		if A.IsUnitEnemy(target) and A.Shadowfury:GetCooldown() <= 2 and A.Shadowfury:IsTalentLearned() and UseAoE and inCombat and (Pet:GetInRange(A.LashofPain.ID, 5) >= 3  or Pet:GetInRange(A.Torment.ID, 5) >= 3 or Pet:GetInRange(A.ShadowBite.ID, 5) >= 3 or Pet:GetInRange(A.Cleave.ID, 5) >= 3 or MultiUnits:GetByRange(15, 4) >= 3) then
+			A.Toaster:Spawn("TripToast", "Shadowfury!", "Shadowfury soon, get cursor ready!", A.Shadowfury.ID)
+		end
+	end
+	
     --###############################
     --##### POTIONS/HEALTHSTONE #####
     --###############################
     
     local UsePotions = A.GetToggle(1, "Potion")        
     local PotionController = A.GetToggle(2, "PotionController")    
-    
+ 
+		if not Player:IsStealthed() then 
+			-- Healthstone 
+			local Healthstone = GetToggle(2, "HSHealth") 
+			if Healthstone >= 0 then 
+				local HealthStoneObject = DetermineUsableObject(player, true, nil, true, nil, A.HSGreater3, A.HSGreater2, A.HSGreater1, A.HS3, A.HS2, A.HS1, A.HSLesser3, A.HSLesser2, A.HSLesser1, A.HSMajor3, A.HSMajor2, A.HSMajor1, A.HSMinor3, A.HSMinor2, A.HSMinor1)
+				if HealthStoneObject then 			
+					if Healthstone >= 100 then -- AUTO 
+						if Unit(player):TimeToDie() <= 9 and Unit(player):HealthPercent() <= 40 then 
+							return HealthStoneObject:Show(icon)	
+						end 
+					elseif Unit(player):HealthPercent() <= Healthstone then 
+						return HealthStoneObject:Show(icon)								 
+					end 
+				end 
+			end 		
+		end 
+ 
     --[[if not Player:IsStealthed() then  
         local Healthstone = GetToggle(2, "HSHealth") 
         if Healthstone >= 0 then 
@@ -386,6 +447,28 @@ A[3] = function(icon, isMulti)
             end 
         end         
     end ]]
+
+	if UsePotions and combatTime > 2 then
+		--Living Action
+		if PotionController == "LivingActionPotion" and Action.CanUseLivingActionPotion(icon, InRange()) then 
+			return true
+		end 
+		
+		-- RestorativePotion
+		if PotionController == "RestorativePotion" and Action.CanUseRestorativePotion(icon) then 
+			return true 
+		end   
+
+		-- LimitedInvulnerabilityPotion
+		if PotionController == "LimitedInvulnerabilityPotion" and Unit(player):HasBuffs("DeffBuffs") and Action.CanUseLimitedInvulnerabilityPotion(icon) then 
+			return true  
+		end 
+		
+		-- HealingPotion 
+		if PotionController == "HealingPotion" and Action.CanUseHealingPotion(icon) then 
+			return true 
+		end 	
+	end
     
     --[[if UsePotions and combatTime > 2 then
         if PotionController == "HealingPotion" then
@@ -405,15 +488,73 @@ A[3] = function(icon, isMulti)
 	
 	local DefensivesHP = A.GetToggle(2, "DefensivesHP")
 	if inCombat then
-
+       if petName == "Voidwalker" and A.Sacrifice:IsReadyByPassCastGCD(player) then 
+            if Unit(player):HealthPercent() > DefensivesHP and Unit(player):GetRealTimeDMG() > 0 then 
+                return A.Sacrifice:Show(icon)
+            end  
+        end 
 	end
+	
+    if A.DeathCoil:IsReady(unitID) and Unit(player):IsExecuted() and A.DeathCoil:AbsentImun(target, Temp.AuraForCC) then 
+        return A.DeathCoil:Show(icon)
+    end	
+
+	--Howl of Terror from Ayni
+	if A.IsInPvP and A.HowlofTerror:IsReady(player, true) then 
+		-- Enemy healer
+		if A.Zone == "pvp" then 
+			local enemyHealerInRange, _, enemyHealerUnitID = EnemyTeam("HEALER"):PlayersInRange(1)
+			if enemyHealerInRange and not UnitIsUnit(enemyHealerUnitID, "target") and ((Unit(enemyHealerUnitID):GetRange() > 0 and Unit(enemyHealerUnitID):GetRange() <= 10) or (petIsActive and Temp.IsPetInMelee(enemyHealerUnitID) and Unit(pet):GetRange() <= 10)) and A.HowlofTerror:AbsentImun(enemyHealerUnitID, Temp.AuraForFear) and Unit(enemyHealerUnitID):IsControlAble("fear") then 
+				return A.HowlofTerror:Show(icon)
+			end 
+		end 
+		
+		-- Enemy players 
+		local namePlateUnitID
+		local damagersOnPlayer = 0
+		for namePlateUnitID in pairs(ActiveUnitPlates) do                 
+			if Unit(namePlateUnitID):IsPlayer() and ((Unit(namePlateUnitID):GetRange() > 0 and Unit(namePlateUnitID):GetRange() <= 10) or (petIsActive and Temp.IsPetInMelee(namePlateUnitID) and Unit(pet):GetRange() <= 10)) and A.HowlofTerror:AbsentImun(namePlateUnitID, Temp.AuraForFear) and Unit(namePlateUnitID):IsControlAble("fear") then 
+				if UnitIsUnit(namePlateUnitID .. "target", player) and Unit(namePlateUnitID):IsDamager() then 
+					damagersOnPlayer = damagersOnPlayer + 1
+				end 
+				
+				-- Multi-fear all damager who sits on player                    
+				if damagersOnPlayer >= 3 then 
+					return A.HowlofTerror:Show(icon)
+				end 
+				
+				-- Fear nearest not selected in target:
+				-- 1. With any burst buffs
+				-- 2. With any casting spell 
+				-- 3. If it's enemy healer 
+				-- 4. If in unit's own target on execute phase any unit 
+				if not UnitIsUnit(namePlateUnitID, "target") and (Unit(namePlateUnitID .. "target"):IsExecuted() or Unit(namePlateUnitID):IsCastingRemains() > 0 or Unit(namePlateUnitID):HasBuffs("DamageBuffs") > 2 or Unit(namePlateUnitID):IsHealer()) and (not Unit(namePlateUnitID):IsFocused() or Unit(namePlateUnitID):GetRealTimeDMG() == 0) then 
+					return A.HowlofTerror:Show(icon)
+				end 
+			end 
+		end 
+	end         	
     
+	--Will of the Forsaken
+	if A.WilloftheForsaken:AutoRacial() then 
+		return A.WilloftheForsaken:Show(icon)
+	end 
+	
+	-- EscapeArtist
+	if A.EscapeArtist:AutoRacial() and not mouseoverInRange30 and not targetInRange30 then 
+		return A.EscapeArtist:Show(icon)
+	end 	
+	
     --###############
     --##### OOC #####
     --###############    
 
+	if A.FelDomination:IsReady(player) and inCombat and not Unit(pet):IsExists() then
+		return A.FelDomination:Show(icon)
+	end
+
 	local PetChoice = A.GetToggle(2, "PetChoice")
-	if not Unit(pet):IsExists() then
+	if not Unit(pet):IsExists() and (not inCombat or Unit(player):HasBuffs(A.FelDomination.ID, true) > 0) then
 		if PetChoice == "Imp" then
 			if A.SummonImp:IsReady(player) then
 				return A.SummonImp:Show(icon)
@@ -453,7 +594,6 @@ A[3] = function(icon, isMulti)
     ------------------------------------------------------
     local function EnemyRotation(unitID)
 
-	
         local npcID = select(6, Unit(unitID):InfoGUID())		
 		local SpecSelect = A.GetToggle(2, "SpecSelect")
     
@@ -461,27 +601,52 @@ A[3] = function(icon, isMulti)
 		local ImmolateDown = Unit(unitID):HasDeBuffs(348 or 707 or 1094 or 2941 or 11665 or 11667 or 11668 or 25309 or 27215 or 47810, true) <= A.Immolate:GetSpellCastTime()
 		local UARefresh = Player:GetDeBuffsUnitCount(30108 and 30404 and 30405 and 47841 and 47843) < 1 
     
+		local DrainLifeHP = A.GetToggle(2, "DrainLifeHP")
+		if A.DrainLife:IsReady(unitID) and Unit(player):HealthPercent() <= DrainLifeHP and canCast and not isMoving then
+			return A.DrainLife:Show(icon)
+		end
+
 		local LifeTapMana = A.GetToggle(2, "LifeTapMana")
 		local LifeTapHP = A.GetToggle(2, "LifeTapHP")		
-		
 		if A.LifeTap:IsReady(player) and Player:ManaPercentage() <= LifeTapMana and Unit(player):HealthPercent() >= LifeTapHP then
 			return A.LifeTap:Show(icon)
 		end
 		
+		local Soulshardcap = A.GetToggle(2, "Soulshardcap")
+		if A.DrainSoul:IsReady(unitID) and not Unit(unitID):IsBoss() and SoulshardCount < Soulshardcap and Unit(unitID):HealthPercent() <= 25 then
+			return A.DrainSoul:Show(icon)
+		end
+
+		local DoInterrupt = CanInterrupt(unitID)
+		if DoInterrupt then 
+			return DoInterrupt:Show(icon)
+        end
+
+		if A.DeathCoil:IsReady(unitID) then         
+			local useKick, useCC, useRacial, _, castRemainsTime = InterruptIsValid(target, nil, nil, true)
+			if (useKick or useCC or useRacial) and castRemainsTime >= A.GetLatency() and A.DeathCoil:AbsentImun(target, Temp.AuraForCC) and Unit(target):IsControlAble("fear") then 
+				return A.DeathCoil:Show(icon)
+			end 
+		end 
+
+		local DoPurge = CanDispel(unitID, isFriendly)
+		if DoPurge then 
+			return DoPurge:Show(icon)
+        end
 		
 		--AFFLICTION
-		if SpecSelect == "Affliction" and InRange then
+		if InRange and (SpecSelect == "Affliction" or (SpecSelect == "Auto" and A.Haunt:IsTalentLearned())) then
 			if A.Shadowflame:IsReady(unitID) and UseAoE and MultiUnits:GetByRange(15, 4) >= 3 then
 				return A.Shadowflame:Show(icon)
 			end	
 
-			if Pet:GetInRange(A.LashofPain.ID, 5) >= 3  or Pet:GetInRange(A.Torment.ID, 5) >= 3 or Pet:GetInRange(A.ShadowBite.ID, 5) >= 3 then
+			if Pet:GetInRange(A.LashofPain.ID, 5) >= 3  or Pet:GetInRange(A.Torment.ID, 5) >= 3 or Pet:GetInRange(A.ShadowBite.ID, 5) >= 3 or Pet:GetInRange(A.Cleave.ID, 5) >= 3 or MultiUnits:GetByRange(15, 4) >= 3 then
 				if A.SeedofCorruption:IsReady(unitID) and UseAoE and canCast and not isMoving then
 					return A.SeedofCorruption:Show(icon)
 				end
-			end		
+			end	
 		
-			if A.ShadowBolt:IsReady(unitID) and A.ImprovedShadowBolt:IsTalentLearned() and not isMoving and canCast then 
+			if A.ShadowBolt:IsReady(unitID) and (A.ImprovedShadowBolt:IsTalentLearned() or not inCombat) and not isMoving and canCast then 
 				if Unit(unitID):HasDeBuffs(A.ShadowMastery.ID) < A.ShadowBolt:GetSpellCastTime() and not A.ShadowBolt:IsSpellInFlight() then
 					return A.ShadowBolt:Show(icon)
 				end
@@ -517,13 +682,19 @@ A[3] = function(icon, isMulti)
 		end
 		
 		--DEMONOLOGY
-		if SpecSelect == "Demonology" then
+		if InRange and (SpecSelect == "Demonology" or (SpecSelect == "Auto" and A.SummonFelguard:IsTalentLearned())) then
 
 			if A.Metamorphosis:IsReady(player) and BurstIsON(unitID) then
 				if (UseAoE and MultiUnits:GetByRange(15, 4) >= 3) or (Unit(unitID):TimeToDie() > 30 or Unit(unitID):IsBoss()) then 
 					return A.Metamorphosis:Show(icon)
 				end
 			end
+
+			if A.ShadowBolt:IsReady(unitID) and (A.ImprovedShadowBolt:IsTalentLearned() or not inCombat) and not isMoving and canCast then 
+				if Unit(unitID):HasDeBuffs(A.ShadowMastery.ID) < A.ShadowBolt:GetSpellCastTime() and not A.ShadowBolt:IsSpellInFlight() then
+					return A.ShadowBolt:Show(icon)
+				end
+			end		
 			
 			if A.DemonicEmpowerment:IsReadyByPassCastGCD(player) then --and Pet:IsInRange(A.Cleave.ID, unitID) once Cleave is added to PetLib. 
 				return A.DemonicEmpowerment:Show(icon)
@@ -545,13 +716,7 @@ A[3] = function(icon, isMulti)
 				if A.SeedofCorruption:IsReady(unitID) and UseAoE and canCast and not isMoving then
 					return A.SeedofCorruption:Show(icon)
 				end
-			end	
-
-			if A.ShadowBolt:IsReady(unitID) and A.ImprovedShadowBolt:IsTalentLearned() and not isMoving and canCast then 
-				if Unit(unitID):HasDeBuffs(A.ShadowMastery.ID) < A.ShadowBolt:GetSpellCastTime() and not A.ShadowBolt:IsSpellInFlight() then
-					return A.ShadowBolt:Show(icon)
-				end
-			end				
+			end			
 
 			local DoCurse = CastCurse()
 			if DoCurse and canCast then
@@ -564,7 +729,7 @@ A[3] = function(icon, isMulti)
 				end
 			end
 
-			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= 10 and not isMoving then
+			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= 5 and not isMoving then
 				return A.Immolate:Show(icon)
 			end
 
@@ -582,12 +747,78 @@ A[3] = function(icon, isMulti)
 
 		end
 		
-		--BEAR
-		if SpecSelect == "Destruction" then
+		--DESTRUCTION
+		if InRange and (SpecSelect == "Destruction" or (SpecSelect == "Auto" and A.ChaosBolt:IsTalentLearned())) then
 
+			if A.Incinerate:IsReady(unitID) and not inCombat and canCast and not isMoving then
+				return A.Incinerate:Show(icon)
+			end
+
+			local DoCurse = CastCurse()
+			if DoCurse and canCast then
+				return DoCurse:Show(icon)
+			end
+			
+			if Pet:GetInRange(A.LashofPain.ID, 5) >= 3 or Pet:GetInRange(A.Torment.ID, 5) >= 3 or Pet:GetInRange(A.ShadowBite.ID, 5) >= 3 or Pet:GetInRange(A.Cleave.ID, 5) >= 3 or MultiUnits:GetByRange(15, 4) >= 3  then
+				if A.Shadowfury:IsReady(player) and UseAoE and canCast then
+					return A.Shadowfury:Show(icon)
+				end
+			end	
+
+			if A.Shadowflame:IsReady(unitID) and UseAoE and MultiUnits:GetByRange(15, 4) >= 3 then
+				return A.Shadowflame:Show(icon)
+			end	
+			
+			if Pet:GetInRange(A.LashofPain.ID, 5) >= 3 or Pet:GetInRange(A.Torment.ID, 5) >= 3 or Pet:GetInRange(A.ShadowBite.ID, 5) >= 3 or Pet:GetInRange(A.Cleave.ID, 5) >= 3 or MultiUnits:GetByRange(15, 4) >= 3  then
+				if A.SeedofCorruption:IsReady(unitID) and UseAoE and canCast and not isMoving then
+					return A.SeedofCorruption:Show(icon)
+				end
+			end				
+			
+			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= 5 and not isMoving then
+				return A.Immolate:Show(icon)
+			end
+			
+			if A.Conflagrate:IsReady(unitID) and not ImmolateDown and canCast then
+				return A.Conflagrate:Show(icon)
+			end
+			
+			if A.ChaosBolt:IsReady(unitID) and canCast and not isMoving then
+				return A.ChaosBolt:Show(icon)
+			end
+			
+			if A.Incinerate:IsReady(unitID) and canCast and not isMoving then
+				return A.Incinerate:Show(icon)
+			end
+			
+			if A.Corruption:IsReady(unitID) and canCast and not CorruptionActive then
+				return A.Corruption:Show(icon)
+			end
 
 		end
-        
+		
+		--Failsafe if nothing selected
+		if inRange then
+			if A.ShadowBolt:IsReady(unitID) and (A.ImprovedShadowBolt:IsTalentLearned() or not inCombat) and not isMoving and canCast then 
+				if Unit(unitID):HasDeBuffs(A.ShadowMastery.ID) < A.ShadowBolt:GetSpellCastTime() and not A.ShadowBolt:IsSpellInFlight() then
+					return A.ShadowBolt:Show(icon)
+				end
+			end	
+
+			if Pet:GetInRange(A.LashofPain.ID, 5) >= 3  or Pet:GetInRange(A.Torment.ID, 5) >= 3 or Pet:GetInRange(A.ShadowBite.ID, 5) >= 3 or Pet:GetInRange(A.Cleave.ID, 5) >= 3 or MultiUnits:GetByRange(15, 4) >= 3 then
+				if A.SeedofCorruption:IsReady(unitID) and UseAoE and canCast and not isMoving then
+					return A.SeedofCorruption:Show(icon)
+				end
+			end	
+				
+			if A.Corruption:IsReady(unitID) and canCast and not CorruptionActive then
+				return A.Corruption:Show(icon)
+			end
+			
+			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= 5 and not isMoving then
+				return A.Immolate:Show(icon)
+			end			
+        end
     end
     
      
