@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v0.01 (8 June 2022)",
+    DateTime = "v1.00 (21 August 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -58,7 +58,9 @@ A.Data.ProfileUI = {
                     E = "Dropdown",                                                         
                     OT = {
 						{ text = "Healing Potion", value = "HealingPotion" },
-						{ text = "Haste Potion", value = "HastePotion" },						
+						{ text = "Limited Invulnerability", value = "LimitedInvulnerabilityPotion" },
+						{ text = "Living Action", value = "LivingActionPotion" },
+						{ text = "Restorative", value = "RestorativePotion" },						
                     },
                     DB = "PotionController",
                     DBV = "HealingPotion",

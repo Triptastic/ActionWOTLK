@@ -26,6 +26,7 @@ local UnitCooldown                            = Action.UnitCooldown
 local Unit                                    = Action.Unit 
 local Pet                                       = LibStub("PetLibrary") 
 local AuraType                                    = LibStub("LibAuraTypes")
+local HealingEngine                            = Action.HealingEngine
 
 local SetToggle                                = Action.SetToggle
 local GetToggle                                = Action.GetToggle
@@ -385,29 +386,44 @@ A[3] = function(icon, isMulti)
     local UsePotions = A.GetToggle(1, "Potion")        
     local PotionController = A.GetToggle(2, "PotionController")    
     
-    --[[if not Player:IsStealthed() then  
-        local Healthstone = GetToggle(2, "HSHealth") 
-        if Healthstone >= 0 then 
-            local HealthStoneObject = DetermineUsableObject(player, true, nil, true, nil, A.HSGreater3, A.HSGreater2, A.HSGreater1, A.HS3, A.HS2, A.HS1, A.HSLesser3, A.HSLesser2, A.HSLesser1, A.HSMajor3, A.HSMajor2, A.HSMajor1, A.HSMinor3, A.HSMinor2, A.HSMinor1, A.HSMaster1, A.HSMaster2, A.HSMaster3)
-            if HealthStoneObject then             
-                if Healthstone >= 100 then -- AUTO 
-                    if Unit(player):TimeToDie() <= 9 and Unit(player):HealthPercent() <= 40 then 
-                        return HealthStoneObject:Show(icon)    
-                    end 
-                elseif Unit(player):HealthPercent() <= Healthstone then 
-                    return HealthStoneObject:Show(icon)                                 
-                end 
-            end 
-        end         
-    end ]]
+		if not Player:IsStealthed() then 
+			-- Healthstone 
+			local Healthstone = GetToggle(2, "HSHealth") 
+			if Healthstone >= 0 then 
+				local HealthStoneObject = DetermineUsableObject(player, true, nil, true, nil, A.HSGreater3, A.HSGreater2, A.HSGreater1, A.HS3, A.HS2, A.HS1, A.HSLesser3, A.HSLesser2, A.HSLesser1, A.HSMajor3, A.HSMajor2, A.HSMajor1, A.HSMinor3, A.HSMinor2, A.HSMinor1)
+				if HealthStoneObject then 			
+					if Healthstone >= 100 then -- AUTO 
+						if Unit(player):TimeToDie() <= 9 and Unit(player):HealthPercent() <= 40 then 
+							return HealthStoneObject:Show(icon)	
+						end 
+					elseif Unit(player):HealthPercent() <= Healthstone then 
+						return HealthStoneObject:Show(icon)								 
+					end 
+				end 
+			end 		
+		end 
     
-    --[[if UsePotions and combatTime > 2 then
-        if PotionController == "HealingPotion" then
-            if CanUseHealingPotion(icon) then 
-                return true
-            end 
-        end    
-    end   ]] 
+	if UsePotions and combatTime > 2 then
+		--Living Action
+		if PotionController == "LivingActionPotion" and Action.CanUseLivingActionPotion(icon, InRange()) then 
+			return true
+		end 
+		
+		-- RestorativePotion
+		if PotionController == "RestorativePotion" and Action.CanUseRestorativePotion(icon) then 
+			return true 
+		end   
+
+		-- LimitedInvulnerabilityPotion
+		if PotionController == "LimitedInvulnerabilityPotion" and Unit(player):HasBuffs("DeffBuffs") and Action.CanUseLimitedInvulnerabilityPotion(icon) then 
+			return true  
+		end 
+		
+		-- HealingPotion 
+		if PotionController == "HealingPotion" and Action.CanUseHealingPotion(icon) then 
+			return true 
+		end 	
+	end
     
     --[[if CanUseManaRune(icon) then
         return true
@@ -728,7 +744,7 @@ A[3] = function(icon, isMulti)
 				return A.Berserk:Show(icon)
 			end
 			--Barkskin in range and target ttd > 10
-			if A.Barkskin:IsReady(player) and InMelee() and (Unit(unitID):TimeToDie() > 10 or MultiUnits.GetByRangeAreaTTD(10) > 10) then
+			if A.Barkskin:IsReady(player) and InMelee() and (Unit(unitID):TimeToDie() > 5) then
 				return A.Barkskin:Show(icon)
 			end
 			--MangleBear
@@ -758,6 +774,7 @@ A[3] = function(icon, isMulti)
 	local function HealingRotation(unitID) 
 		
         local useDispel, useShields, useHoTs, useUtils = HealingEngine.GetOptionsByUnitID(unitID)
+		local getmembersAll = HealingEngine.GetMembersAll()		
         local unitGUID = UnitGUID(unitID)    	
 		local DungeonGroup = TeamCache.Friendly.Size >= 2 and TeamCache.Friendly.Size <= 5
 		local RaidGroup = TeamCache.Friendly.Size >= 5 		
@@ -772,6 +789,10 @@ A[3] = function(icon, isMulti)
 		local WildGrowthTargets = A.GetToggle(2, "WildGrowthTargets")			
 		local TranqHP = A.GetToggle(2, "TranqHP")
 		local TranqTargets = A.GetToggle(2, "TranqTargets")		
+		
+		if A.TreeofLife:IsReady(player) and Unit(player):HasBuffs(A.TreeofLife.ID) == 0 then
+			return A.TreeofLife:Show(icon)
+		end
 		
 		--Emergency
 		if inCombat and canCast and A.NaturesSwiftness:IsReady(player) and A.HealingTouch:IsReadyByPassGCD(unitID) then
@@ -858,12 +879,12 @@ A[3] = function(icon, isMulti)
 			end
 		end
 		
-		if A.Rejuvenation:IsReady(unitID) and canCast and Unit(unitID):HealthPercent() < RejuvHP then
+		if A.Rejuvenation:IsReady(unitID) and canCast and Unit(unitID):HealthPercent() < RejuvHP and Unit(unitID):HasBuffs(A.Rejuvenation.ID, true) == 0 then
 			return A.Rejuvenation:Show(icon)
 		end
 		
 		--Regrowth
-		if A.Regrowth:IsReady(unitID) and canCast and Unit(unitID):HealthPercent() < RegrowthHP then
+		if A.Regrowth:IsReady(unitID) and canCast and Unit(unitID):HealthPercent() < RegrowthHP and Unit(unitID):HasBuffs(A.Regrowth.ID, true) == 0 then
 			return A.Regrowth:Show(icon)
 		end
 		
@@ -874,23 +895,12 @@ A[3] = function(icon, isMulti)
 	
 	end
      
-	if A.IsUnitEnemy("target") and not Unit("target"):IsDead() then 
-        unitID = "target"
-        
-        if EnemyRotation(unitID) then 
-            return true 
-        end
-    
-	if A.IsUnitFriendly("target") then 
-        unitID = "target" 
-        
-        if HealingRotation(unitID) then 
-            return true 
-        end 
-    end
+    if A.IsUnitEnemy("target") then 
+        return EnemyRotation("target")
+    elseif A.IsUnitFriendly("target") then
+        return HealingRotation("target")
+    end 
 		
-    end
-        
     end
 -- Finished
 
