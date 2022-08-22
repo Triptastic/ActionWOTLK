@@ -168,7 +168,129 @@ A.Data.ProfileUI = {
                         ANY = " ====== HOLY ====== ",
                     },
                 },
+            },
+			{
+                {
+                    E = "Label",
+                    L = {
+                        ANY = "Keep the sliders below on AUTO to use the experimental healing method. Theoretically, this should be much more efficient and accurate healing than standard HP percent calculations. Divine Hymn should be cast manually.",
+                    },
+                },
+			},
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
             },			
+			{
+				{ -- Cleanse
+                    E = "Checkbox", 
+                    DB = "Cleanse",
+                    DBV = true,
+                    L = { 
+                        ANY = "Cleanse",
+                    }, 
+                    TT = { 
+                        ANY = "Automatically cleanse (careful when using this, might be very fast on cleansing).",
+                    }, 
+                    M = {},
+                },
+                { -- Global Heal Modifier
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 2, 
+					Precision = 1,
+                    DB = "globalhealmod",
+                    DBV = 0.8,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Global Heal Modifier",
+                    },
+                    TT = { 
+                        ANY = "Multiplies the healing calculations by this amount (if healing sliders are set to AUTO). A lower number means that your heals will be cast sooner. Not recommended to have this higher than 1. Default is 0.8.", 
+                    },                     
+                    M = {},
+                },				
+            },
+			{
+                { -- GreaterHealHP
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "GreaterHealHP",
+                    DBV = 100,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Greater Heal HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Greater Heal.", 
+                    },                     
+                    M = {},
+                },
+                { -- FlashHealHP
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "FlashHealHP",
+                    DBV = 100,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Flash Heal HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Flash Heal.", 
+                    },                     
+                    M = {},
+                },
+                { -- BindingHealHP
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "BindingHealHP",
+                    DBV = 100,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Binding Heal HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Binding Heal. Will also check your own HP at 75% of value.", 
+                    },                     
+                    M = {},
+                },					
+			},
+			{
+                { -- PrayerofHealing
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "PrayerofHealingHP",
+                    DBV = 100,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Prayer of Healing HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Prayer of Healing.", 
+                    },                     
+                    M = {},
+                },	
+                { -- PrayerofHealingUnits
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 5,                            
+                    DB = "PrayerofHealingUnits",
+                    DBV = 4,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Prayer of Healing Targets",
+                    },
+                    TT = { 
+                        ANY = "Number of targets to use Prayer of Healing.", 
+                    },                     
+                    M = {},
+                },					
+			},			
             { -- LAYOUT SPACE   
                 {
                     E = "LayoutSpace",                                                                         
@@ -189,6 +311,8 @@ A.Data.ProfileUI = {
                         ANY = "Make sure you bind StopCast in GGL! We use StopCast to ensure that we don't waste any time channeling Mind Flay, especially when we can snipe an execute with Shadow Word: Death!",
                     },
                 },
+			},
+			{
                 {
                     E = "Label",
                     L = {

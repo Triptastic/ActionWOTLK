@@ -150,6 +150,10 @@ Action[Action.PlayerClass]                     = {
 	ShadowWeaving								= Create({ Type = "Spell", ID = 15258, Hidden = true       }),	
     Darkness		                            = Create({ Type = "Spell", ID = 15259,    isTalent = true, useMaxRank = true,    Hidden = true }),
     TwinDisciplines	                            = Create({ Type = "Spell", ID = 47586,    isTalent = true, useMaxRank = true,    Hidden = true }),	
+    SerendipityTalent							= Create({ Type = "Spell", ID = 63737,    isTalent = true, useMaxRank = true,    Hidden = true }),
+	SerendipityBuff	                            = Create({ Type = "Spell", ID = 63734,    Hidden = true }),
+    EmpoweredHealing							= Create({ Type = "Spell", ID = 33158,    isTalent = true, useMaxRank = true,    Hidden = true }),	
+    SpiritualHealing							= Create({ Type = "Spell", ID = 14898,    isTalent = true, useMaxRank = true,    Hidden = true }),	
 	
     --Misc
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
@@ -257,25 +261,56 @@ local function CanDispel(unitID, isFriendly)
 end 
 
 spellDmg = GetSpellBonusDamage(6) --Shadow bonus damage
-local function SWDeathDmgCalc() --to add glyph damage once supported
-	
+bonusHeal = GetSpellBonusHealing() -- Healing bonus
+
+local function SWDeathDmgCalc()--Add glyph bonus when implemented
+
 	local TwinDisciplinesDmg = A.TwinDisciplines:GetTalentRank() * 1 / 100
 	local ShadowWeavingDmg = Unit(player):HasBuffsStacks(A.ShadowWeaving.ID) * 2 / 100
 	local DarknessDmg = A.Darkness:GetTalentRank() * 2 / 100
 	
-	if A.ShadowWordDeath:GetSpellRank() == 0 then
-		return 0
-	elseif A.ShadowWordDeath:GetSpellRank() == 1 then
-		return (450+(0.429*spellDmg))*(1+TwinDisciplinesDmg)*(1+ShadowWeavingDmg)*(1+DarknessDmg)
-	elseif A.ShadowWordDeath:GetSpellRank() == 2 then
-		return (572+(0.429*spellDmg))*(1+TwinDisciplinesDmg)*(1+ShadowWeavingDmg)*(1+DarknessDmg)
-	elseif A.ShadowWordDeath:GetSpellRank() == 3 then
-		return (639+(0.429*spellDmg))*(1+TwinDisciplinesDmg)*(1+ShadowWeavingDmg)*(1+DarknessDmg)
-	elseif A.ShadowWordDeath:GetSpellRank() == 4 then
-		return (750+(0.429*spellDmg))*(1+TwinDisciplinesDmg)*(1+ShadowWeavingDmg)*(1+DarknessDmg)		
-	end
+	return (A.ShadowWordDeath:GetSpellDescription()[2]+(0.429*spellDmg))*(1+TwinDisciplinesDmg)*(1+ShadowWeavingDmg)*(1+DarknessDmg)
+	
 end
 
+local function HealCalc(heal)
+
+	local healamount = 0
+	local globalhealmod = A.GetToggle(2, "globalhealmod")
+	
+	local EmpoweredHealingModGreater = A.EmpoweredHealing:GetTalentRank() * 8 / 100
+	local EmpoweredHealingMod = A.EmpoweredHealing:GetTalentRank() * 4 / 100	
+	local SpiritualHealingMod = A.SpiritualHealing:GetTalentRank() * 2 / 100
+	
+	if heal == A.GreaterHeal then
+		healamount = (A.GreaterHeal:GetSpellDescription()[2]+(1.611*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingModGreater)
+	elseif heal == A.FlashHeal then
+		healamount = (A.FlashHeal:GetSpellDescription()[2]+(0.807*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
+	elseif heal == A.BindingHeal then
+		healamount = (A.BindingHeal:GetSpellDescription()[2]+(0.807*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
+	elseif heal == A.PrayerofMending then
+		healamount = (A.PrayerofMending:GetSpellDescription()[2]+(0.807*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
+	elseif heal == A.CircleofHealing then
+		healamount = (A.CircleofHealing:GetSpellDescription()[2]+(0.402*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
+	elseif heal == A.PrayerofHealing then
+		healamount = (A.PrayerofHealing:GetSpellDescription()[2]+(0.526*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
+	end
+
+	return healamount * globalhealmod
+
+end
+
+local function AoEHealable()
+
+	local meleetotal = 0
+	for _, thisUnit in ipairs(SortedUnitIDs) do 
+		if  A_Unit(thisUnit.Unit):IsMelee() then
+		total = total + 1
+		end
+	end
+
+	return total 
+end 
 
 --- ======= ACTION LISTS =======
 -- [3] Single Rotation
@@ -484,7 +519,7 @@ A[3] = function(icon, isMulti)
 		end
 		
 		--SWP only with Shadow Weavingx5
-		if A.ShadowWordPain:IsReady(unitID) and not SWPActive and Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 then
+		if A.ShadowWordPain:IsReady(unitID) and not SWPActive and (Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 or not A.ShadowWeaving:IsTalentLearned()) then
 			return A.ShadowWordPain:Show(icon)
 		end
 		
@@ -509,6 +544,10 @@ A[3] = function(icon, isMulti)
 			return A.MindFlay:Show(icon)
 		end
 		
+		if A.Smite:IsReady(unitID) and not isMoving then
+			return A.Smite:Show(icon)
+		end
+		
 		local SWDMoving = A.GetToggle(2, "SWDMoving")
 		if A.ShadowWordDeath:IsReady(unitID) and SWDMoving and Unit(player):Health() > SWDeathDmgCalc() then
 			return A.ShadowWordDeath:Show(icon)
@@ -522,14 +561,94 @@ A[3] = function(icon, isMulti)
     
  --------------------------------------------------------------------------------------------------    
 	local function HealingRotation(unitID) 
-		
+	
         local useDispel, useShields, useHoTs, useUtils = HealingEngine.GetOptionsByUnitID(unitID)
 		local getmembersAll = HealingEngine.GetMembersAll()		
         local unitGUID = UnitGUID(unitID)    	
 		local DungeonGroup = TeamCache.Friendly.Size >= 2 and TeamCache.Friendly.Size <= 5
 		local RaidGroup = TeamCache.Friendly.Size >= 5 		
+			
+		local Cleanse = A.GetToggle(2, "Cleanse")
+		local GreaterHealHP = A.GetToggle(2, "GreaterHealHP")
+		local FlashHealHP = A.GetToggle(2, "FlashHealHP")	
+		local BindingHealHP = A.GetToggle(2, "BindingHealHP")
+		local PrayerofHealingHP = A.GetToggle(2, "PrayerofHealingHP")
 		
+		--[[if canCast and Player:IsStaying() and HealingEngine.GetBelowHealthPercentUnits(DivineHymnHP, 30) > DivineHymnTargets then
+			if A.InnerFocus:IsReady(player) then
+				return A.InnerFocus:Show(icon)
+			end		
+			if A.DivineHymn:IsReady(player) then
+			A.Toaster:SpawnByTimer("TripToast", 0, "Divine Hymn!", "Using Divine Hymn! Stop moving!", A.DivineHymn.ID)				
+				return A.DivineHymn:Show(icon)
+			end
+		
+		end]]
 	
+		--PrayerofHealing
+		if A.PrayerofHealing:IsReady(unitID) and not isMoving and canCast then
+			if PrayerofHealingHP >= 100 then
+				if Unit(unitID):HealthDeficit() >= HealCalc(A.PrayerofHealing) then
+					return A.PrayerofHealing:Show(icon)
+				end
+			elseif PrayerofHealing <= 99 then
+				if Unit(unitID):HealthPercent() <= PrayerofHealingHP then
+					return A.PrayerofHealing:Show(icon)
+				end
+			end
+		end	
+	
+		--Cleansing
+		if A.AbolishDisease:IsReady(unitID) and Cleanse then
+			for i = 1, #getmembersAll do 
+				if Unit(getmembersAll[i].Unit):GetRange() <= 40 and not Unit(getmembersAll[i].Unit):IsDead() and AuraIsValid(getmembersAll[i].Unit, "UseDispel", "Poison") and Unit(getmembersAll[i].Unit):HasBuffs(A.AbolishDisease.ID) == 0 then
+					HealingEngine.SetTarget(getmembersAll[i].Unit, 0.3)   
+					return A.AbolishDisease:Show(icon)
+				end                
+			end
+		end
+		
+
+		--GreaterHeal
+		if A.GreaterHeal:IsReady(unitID) and not isMoving and canCast and (Unit(player):HasBuffsStacks(A.SerendipityBuff.ID, true) >= 3 or not A.SerendipityTalent:IsTalentLearned()) then
+			if GreaterHealHP >= 100 then
+				if Unit(unitID):HealthDeficit() >= HealCalc(A.GreaterHeal) then
+					return A.GreaterHeal:Show(icon)
+				end
+			elseif GreaterHealHP <= 99 then
+				if Unit(unitID):HealthPercent() <= GreaterHealHP then
+					return A.GreaterHeal:Show(icon)
+				end
+			end
+		end
+
+		--BindingHeal
+		if A.BindingHeal:IsReady(unitID) and not isMoving and canCast and not UnitIsUnit(unitID, player) then
+			if BindingHealHP >= 100 then
+				if Unit(unitID):HealthDeficit() >= HealCalc(A.BindingHeal) and Unit(player):HealthDeficit() >= (HealCalc(A.BindingHeal) * 0.75) then
+					return A.BindingHeal:Show(icon)
+				end
+			elseif BindingHealHP <= 99 then
+				if Unit(unitID):HealthPercent() <= BindingHealHP and Unit(player):HealthPercent() <= (BindingHealHP * 0.75) then
+					return A.BindingHeal:Show(icon)
+				end
+			end
+		end
+
+		--FlashHeal
+		if A.FlashHeal:IsReady(unitID) and not isMoving and canCast then
+			if FlashHealHP >= 100 then
+				if Unit(unitID):HealthDeficit() >= HealCalc(A.FlashHeal) then
+					return A.FlashHeal:Show(icon)
+				end
+			elseif FlashHealHP <= 99 then
+				if Unit(unitID):HealthPercent() <= FlashHealHP then
+					return A.FlashHeal:Show(icon)
+				end
+			end
+		end
+		
+		
 	end
 
 ---------------------------------------------------------------------------------------------------
