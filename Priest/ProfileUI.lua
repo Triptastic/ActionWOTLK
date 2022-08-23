@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.00 (21 August 2022)",
+    DateTime = "v1.00 (23 August 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -129,25 +129,7 @@ A.Data.ProfileUI = {
                         ANY = " ====== PRIEST ====== ",
                     },
                 },
-            },
-			{
-				{ -- HealingStyle
-                    E = "Dropdown",                                                         
-                    OT = {
-						{ text = "Target", value = "Target" },
-						{ text = "Focus", value = "Focus" },					
-                    },
-                    DB = "HealingStyle",
-                    DBV = "Target",
-                    L = { 
-                        ANY = "Healing Rotation Style: Target or Focus",
-                    }, 
-                    TT = { 
-                        ANY = "Pick how you would like to use the healing rotation style, whether you want to automatically change your target or automatically change your focus. If you set this to focus, it is important that you change all of your heal abilities to '/cast [@focus] SpellName'. You must also change all of your Target Member macros to /focus instead of /target.", 
-                    }, 
-                    M = {},
-                },						
-			},			
+            },			
             { -- PRIEST OPTIONS FIRST ROW
 				{ -- SWDMoving
                     E = "Checkbox", 
@@ -199,7 +181,40 @@ A.Data.ProfileUI = {
                 {
                     E = "LayoutSpace",                                                                         
                 },
-            },			
+            },
+			{
+				{ -- HealingStyle
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Target", value = "Target" },
+						{ text = "Focus", value = "Focus" },					
+                    },
+                    DB = "HealingStyle",
+                    DBV = "Target",
+                    L = { 
+                        ANY = "Healing Rotation Style: Target or Focus",
+                    }, 
+                    TT = { 
+                        ANY = "Pick how you would like to use the healing rotation style, whether you want to automatically change your target or automatically change your focus. If you set this to focus, it is important that you change all of your heal abilities to '/cast [@focus] SpellName'. You must also change all of your Target Member macros to /focus instead of /target.", 
+                    }, 
+                    M = {},
+                },
+                { -- DPSHEAL
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "DPSHEAL",
+                    DBV = 0,
+                    ONLYOFF = true,
+                    L = { 
+                        ANY = "DPS while healing mana (%)",
+                    },
+                    TT = { 
+                        ANY = "Mana (%) to keep DPSing while healing. Keep at 100 to never DPS while in a party. Can only be used with Focus healing style.", 
+                    },                     
+                    M = {},
+                },					
+			},			
 			{
 				{ -- Cleanse
                     E = "Checkbox", 
@@ -234,7 +249,7 @@ A.Data.ProfileUI = {
 				{ -- BlanketRenew
                     E = "Checkbox", 
                     DB = "BlanketRenew",
-                    DBV = true,
+                    DBV = false,
                     L = { 
                         ANY = "Blanket Renew",
                     }, 
@@ -249,7 +264,7 @@ A.Data.ProfileUI = {
                     MAX = 100,                            
                     DB = "RenewHP",
                     DBV = 0,
-                    ONLYOFF = true,
+                    ONOFF = true,
                     L = { 
                         ANY = "Renew HP (%)",
                     },

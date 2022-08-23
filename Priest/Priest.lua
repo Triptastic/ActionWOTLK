@@ -637,7 +637,7 @@ A[3] = function(icon, isMulti)
 		return A.InnerFire:Show(icon)
 	end		
 	
-	if A.PowerWordFortitude:IsReady(player) and Unit(player):HasBuffs(A.PowerWordFortitude.ID, true) == 0 and (unitID == player or unitID == nil) then
+	if A.PowerWordFortitude:IsReady(unitID) and Unit(player):HasBuffs(A.PowerWordFortitude.ID, true) == 0 and (unitID == player or unitID == nil) then
 		return A.PowerWordFortitude:Show(icon)
 	end	
 
@@ -684,7 +684,7 @@ A[3] = function(icon, isMulti)
 			return DoPurge:Show(icon)
         end
 
-        if A.Fade:IsReady(player) and inCombat and not A.IsInPvP and TeamCacheFriendly.Type and (Unit(player):IsTankingAoE() or (inShadowform and combatTime < 5)) then 
+        if A.Fade:IsReady(player) and inCombat and not A.IsInPvP and TeamCacheFriendly.Type and (Unit(player):IsTankingAoE() or (Unit(player):HasBuffs(A.Shadowform.ID, true) > 0 and combatTime < 5)) then 
             return A.Fade:Show(icon)
         end 
 	
@@ -697,49 +697,52 @@ A[3] = function(icon, isMulti)
 			return A.Shadowform:Show(icon)
 		end
 		
-		if A.ShadowWordDeath:IsReady(unitID) and Unit(unitID):Health() < SWDeathDmgCalc() and Unit(player):Health() > SWDeathDmgCalc() then
-			return A.ShadowWordDeath:Show(icon)
+		local DPSHEAL = A.GetToggle(2, "DPSHEAL")
+		if (Player:ManaPercentage() > DPSHEAL and TeamCache.Friendly.Size >= 2) or not Unit(player):InParty() or Unit(player):HasBuffs(A.Shadowform.ID, true) > 0 then
+			if A.ShadowWordDeath:IsReady(unitID) and Unit(unitID):Health() < SWDeathDmgCalc() and Unit(player):Health() > SWDeathDmgCalc() then
+				return A.ShadowWordDeath:Show(icon)
+			end
+			
+			--SWP only with Shadow Weavingx5
+			if A.ShadowWordPain:IsReady(unitID) and not SWPActive and (Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 or not A.ShadowWeaving:IsTalentLearned()) then
+				return A.ShadowWordPain:Show(icon)
+			end
+			
+			if A.VampiricTouch:IsReady(unitID) and not isMoving and not VampiricTouchActive then
+				return A.VampiricTouch:Show(icon)
+			end
+			
+			if A.DevouringPlague:IsReady(unitID) and DevouringPlagueRefresh then
+				return A.DevouringPlague:Show(icon)
+			end
+			
+			if A.MindBlast:IsReady(unitID) and not isMoving then
+				return A.MindBlast:Show(icon)
+			end
+			
+			local MindSearTargets = A.GetToggle(2, "MindSearTargets")
+			if A.MindSear:IsReady(unitID) and not isMoving and MultiUnits:GetActiveEnemies(36, 10) >= MindSearTargets then
+				return A.MindSear:Show(icon)
+			end
+			
+			if A.MindFlay:IsReady(unitID) and not isMoving then
+				return A.MindFlay:Show(icon)
+			end
+			
+			if A.Smite:IsReady(unitID) and not isMoving then
+				return A.Smite:Show(icon)
+			end
+			
+			local SWDMoving = A.GetToggle(2, "SWDMoving")
+			if A.ShadowWordDeath:IsReady(unitID) and SWDMoving and Unit(player):Health() > SWDeathDmgCalc() then
+				return A.ShadowWordDeath:Show(icon)
+			end
+			
+			local DPMoving = A.GetToggle(2, "DPMoving")		
+			if A.DevouringPlague:IsReady(unitID) and DPMoving then
+				return A.DevouringPlague:Show(icon)
+			end		
 		end
-		
-		--SWP only with Shadow Weavingx5
-		if A.ShadowWordPain:IsReady(unitID) and not SWPActive and (Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 or not A.ShadowWeaving:IsTalentLearned()) then
-			return A.ShadowWordPain:Show(icon)
-		end
-		
-		if A.VampiricTouch:IsReady(unitID) and not isMoving and not VampiricTouchActive then
-			return A.VampiricTouch:Show(icon)
-		end
-		
-		if A.DevouringPlague:IsReady(unitID) and DevouringPlagueRefresh then
-			return A.DevouringPlague:Show(icon)
-		end
-		
-		if A.MindBlast:IsReady(unitID) and not isMoving then
-			return A.MindBlast:Show(icon)
-		end
-		
-		local MindSearTargets = A.GetToggle(2, "MindSearTargets")
-		if A.MindSear:IsReady(unitID) and not isMoving and MultiUnits:GetActiveEnemies(36, 10) >= MindSearTargets then
-			return A.MindSear:Show(icon)
-		end
-		
-		if A.MindFlay:IsReady(unitID) and not isMoving then
-			return A.MindFlay:Show(icon)
-		end
-		
-		if A.Smite:IsReady(unitID) and not isMoving then
-			return A.Smite:Show(icon)
-		end
-		
-		local SWDMoving = A.GetToggle(2, "SWDMoving")
-		if A.ShadowWordDeath:IsReady(unitID) and SWDMoving and Unit(player):Health() > SWDeathDmgCalc() then
-			return A.ShadowWordDeath:Show(icon)
-		end
-		
-		local DPMoving = A.GetToggle(2, "DPMoving")		
-		if A.DevouringPlague:IsReady(unitID) and DPMoving then
-			return A.DevouringPlague:Show(icon)
-		end		
 	end
     
  --------------------------------------------------------------------------------------------------    
@@ -909,12 +912,12 @@ A[3] = function(icon, isMulti)
 ---------------------------------------------------------------------------------------------------
 	local HealingStyle = A.GetToggle(2, "HealingStyle")
 	
-    if A.IsUnitEnemy("target") then 
-        return EnemyRotation("target")
+	if A.IsUnitFriendly("focus") and HealingStyle == "Focus" and Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 then
+		return HealingRotation("focus")
     elseif A.IsUnitFriendly("target") and HealingStyle == "Target" and Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 then
         return HealingRotation("target")
-	elseif A.IsUnitFriendly("focus") and HealingStyle == "Focus" and Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 then
-		return HealingRotation("focus")
+	elseif A.IsUnitEnemy("target") then 
+        return EnemyRotation("target")
     end 
         
 end
