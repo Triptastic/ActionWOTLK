@@ -130,6 +130,24 @@ A.Data.ProfileUI = {
                     },
                 },
             },
+			{
+				{ -- HealingStyle
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Target", value = "Target" },
+						{ text = "Focus", value = "Focus" },					
+                    },
+                    DB = "HealingStyle",
+                    DBV = "Target",
+                    L = { 
+                        ANY = "Healing Rotation Style: Target or Focus",
+                    }, 
+                    TT = { 
+                        ANY = "Pick how you would like to use the healing rotation style, whether you want to automatically change your target or automatically change your focus. If you set this to focus, it is important that you change all of your heal abilities to '/cast [@focus] SpellName'. You must also change all of your Target Member macros to /focus instead of /target.", 
+                    }, 
+                    M = {},
+                },						
+			},			
             { -- PRIEST OPTIONS FIRST ROW
 				{ -- SWDMoving
                     E = "Checkbox", 
@@ -213,6 +231,35 @@ A.Data.ProfileUI = {
                 },				
             },
 			{
+				{ -- BlanketRenew
+                    E = "Checkbox", 
+                    DB = "BlanketRenew",
+                    DBV = true,
+                    L = { 
+                        ANY = "Blanket Renew",
+                    }, 
+                    TT = { 
+                        ANY = "Spread blanket Renew whenever any ally is slightly hurt (usually for raid only).",
+                    }, 
+                    M = {},
+                },
+                { -- RenewHP
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "RenewHP",
+                    DBV = 0,
+                    ONLYOFF = true,
+                    L = { 
+                        ANY = "Renew HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Renew. Leave this slider at 0 (and turn off blanket option) if you only want to Renew the tank. Block from Action menu if you want to turn Renew off completely.", 
+                    },                     
+                    M = {},
+                },				
+            },			
+			{
                 { -- GreaterHealHP
                     E = "Slider",                                                     
                     MIN = 0, 
@@ -260,6 +307,21 @@ A.Data.ProfileUI = {
                 },					
 			},
 			{
+                { -- CircleofHealing
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "CircleofHealingHP",
+                    DBV = 100,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Circle of Healing HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Circle of Healing.", 
+                    },                     
+                    M = {},
+                },			
                 { -- PrayerofHealing
                     E = "Slider",                                                     
                     MIN = 0, 

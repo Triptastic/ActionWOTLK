@@ -113,7 +113,7 @@ Action[Action.PlayerClass]                     = {
 	PowerWordShield								= Create({ Type = "Spell", ID = 17, useMaxRank = true        }),
 	PrayerofFortitude							= Create({ Type = "Spell", ID = 21562, useMaxRank = true        }),
 	PrayerofHealing								= Create({ Type = "Spell", ID = 596, useMaxRank = true        }),
-	PrayerofMending								= Create({ Type = "Spell", ID = 33076, useMaxRank = true        }),	
+	PrayerofMending								= Create({ Type = "Spell", ID = 33076, useMaxRank = true        }),			
 	PrayerofShadowProtection					= Create({ Type = "Spell", ID = 27683, useMaxRank = true        }),
 	PrayerofSpirit								= Create({ Type = "Spell", ID = 27681, useMaxRank = true        }),
 	PsychicScream								= Create({ Type = "Spell", ID = 8122, useMaxRank = true        }),
@@ -137,7 +137,9 @@ Action[Action.PlayerClass]                     = {
 	VampiricEmbrace								= Create({ Type = "Spell", ID = 15286, useMaxRank = true        }),	
 	VampiricTouch								= Create({ Type = "Spell", ID = 34914, useMaxRank = true        }),	
 	Dispersion									= Create({ Type = "Spell", ID = 47585, useMaxRank = true        }),	
-
+	CircleofHealing								= Create({ Type = "Spell", ID = 34861, useMaxRank = true        }),	
+	DesperatePrayer								= Create({ Type = "Spell", ID = 19236, useMaxRank = true       }),	
+	WeakenedSoul								= Create({ Type = "Spell", ID = 6788, useMaxRank = true, Hidden = true        }),	
     -- Potions
     MajorManaPotion                            = Create({ Type = "Potion", ID = 13444	}),
     -- Hidden Items    
@@ -224,6 +226,15 @@ local ImmuneArcane = {
     [20478] = true, -- Arcane Servant
 }    
 
+local RaidSubGroup = {
+	group1 = {member1 = false, member2 = false, member3 = false, member4 = false, member5 = false},
+	group2 = {member1 = false, member2 = false, member3 = false, member4 = false, member5 = false},
+	group3 = {member1 = false, member2 = false, member3 = false, member4 = false, member5 = false},
+	group4 = {member1 = false, member2 = false, member3 = false, member4 = false, member5 = false},
+	group5 = {member1 = false, member2 = false, member3 = false, member4 = false, member5 = false},
+}	
+
+
 local function InRange(unitID)
     -- @return boolean 
     return A.ShadowWordPain:IsInRange(unitID)
@@ -273,6 +284,29 @@ local function SWDeathDmgCalc()--Add glyph bonus when implemented
 	
 end
 
+--[[Wait for mana (reference only)
+local playerGUID = UnitGUID("player")
+local f = CreateFrame("Frame")
+f:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+f:SetScript("OnEvent", function(self, event)
+	self:COMBAT_LOG_EVENT_UNFILTERED(CombatLogGetCurrentEventInfo())
+end)
+
+function f:COMBAT_LOG_EVENT_UNFILTERED(...)
+	local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags = ...
+	local spellId, spellName, spellSchool
+
+	if subevent == "SPELL_CAST_SUCCESS" then
+		spellId, spellName, spellSchool = select(12, ...)
+	end
+
+	if spellId and sourceGUID == playerGUID then
+		if TMW.time - timestamp >= (5 - A.GetToggle(2, "waitforregentime")) and <= 5 then
+			--show pooling icon here
+		end
+	end
+end]]
+
 local function HealCalc(heal)
 
 	local healamount = 0
@@ -288,8 +322,6 @@ local function HealCalc(heal)
 		healamount = (A.FlashHeal:GetSpellDescription()[2]+(0.807*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
 	elseif heal == A.BindingHeal then
 		healamount = (A.BindingHeal:GetSpellDescription()[2]+(0.807*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
-	elseif heal == A.PrayerofMending then
-		healamount = (A.PrayerofMending:GetSpellDescription()[2]+(0.807*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
 	elseif heal == A.CircleofHealing then
 		healamount = (A.CircleofHealing:GetSpellDescription()[2]+(0.402*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
 	elseif heal == A.PrayerofHealing then
@@ -300,21 +332,170 @@ local function HealCalc(heal)
 
 end
 
-local function AoEHealable()
+local function MeleeInGroup()
+	local getmembersAll = HealingEngine.GetMembersAll()
+	local total = 0
+	for i = 1, #getmembersAll do 
+	    if Unit(getmembersAll[i].Unit):IsMelee() then
+            total = total + 1
+        end
+	end
+    return total
+end
 
-	local meleetotal = 0
-	for _, thisUnit in ipairs(SortedUnitIDs) do 
-		if  A_Unit(thisUnit.Unit):IsMelee() then
-		total = total + 1
+local function PoHCheckR1()
+	local PrayerofHealingHP = A.GetToggle(2, "PrayerofHealingHP")
+	
+	if (Unit("raid1"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid1"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group1.member1 = true else RaidSubGroup.group1.member1 = false
+	end
+	if (Unit("raid2"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid2"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group1.member2 = true else RaidSubGroup.group1.member2 = false
+	end	
+	if (Unit("raid3"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid3"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group1.member3 = true else RaidSubGroup.group1.member3 = false
+	end	
+	if (Unit("raid4"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid4"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group1.member4 = true else RaidSubGroup.group1.member4 = false
+	end	
+	if (Unit("raid5"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid5"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group1.member5 = true else RaidSubGroup.group1.member5 = false
+	end
+
+	local count = 0
+	for i, v in pairs(RaidSubGroup.group1) do
+		if v == true then
+			count = count + 1
 		end
 	end
 
-	return total 
-end 
+	return count
+
+end
+
+local function PoHCheckR2()
+	local PrayerofHealingHP = A.GetToggle(2, "PrayerofHealingHP")
+	
+	if (Unit("raid6"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid6"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group2.member1 = true else RaidSubGroup.group2.member1 = false
+	end
+	if (Unit("raid7"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid7"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group2.member2 = true else RaidSubGroup.group2.member2 = false
+	end	
+	if (Unit("raid8"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid8"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group2.member3 = true else RaidSubGroup.group2.member3 = false
+	end	
+	if (Unit("raid9"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid9"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group2.member4 = true else RaidSubGroup.group2.member4 = false
+	end	
+	if (Unit("raid10"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid10"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group2.member5 = true else RaidSubGroup.group2.member5 = false
+	end
+
+	local count = 0
+	for i, v in pairs(RaidSubGroup.group2) do
+		if v == true then
+			count = count + 1
+		end
+	end
+
+	return count
+
+end
+
+local function PoHCheckR3()
+	local PrayerofHealingHP = A.GetToggle(2, "PrayerofHealingHP")
+	
+	if (Unit("raid11"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid11"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group3.member1 = true else RaidSubGroup.group3.member1 = false
+	end
+	if (Unit("raid12"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid12"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group3.member2 = true else RaidSubGroup.group3.member2 = false
+	end	
+	if (Unit("raid13"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid13"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group3.member3 = true else RaidSubGroup.group3.member3 = false
+	end	
+	if (Unit("raid14"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid14"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group3.member4 = true else RaidSubGroup.group3.member4 = false
+	end	
+	if (Unit("raid15"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid15"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group3.member5 = true else RaidSubGroup.group3.member5 = false
+	end
+
+	local count = 0
+	for i, v in pairs(RaidSubGroup.group3) do
+		if v == true then
+			count = count + 1
+		end
+	end
+
+	return count
+
+end
+
+local function PoHCheckR4()
+	local PrayerofHealingHP = A.GetToggle(2, "PrayerofHealingHP")
+	
+	if (Unit("raid16"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid16"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group4.member1 = true else RaidSubGroup.group4.member1 = false
+	end
+	if (Unit("raid17"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid17"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group4.member2 = true else RaidSubGroup.group4.member2 = false
+	end	
+	if (Unit("raid18"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid18"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group4.member3 = true else RaidSubGroup.group4.member3 = false
+	end	
+	if (Unit("raid19"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid19"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group4.member4 = true else RaidSubGroup.group4.member4 = false
+	end	
+	if (Unit("raid20"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid20"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group4.member5 = true else RaidSubGroup.group4.member5 = false
+	end
+
+	local count = 0
+	for i, v in pairs(RaidSubGroup.group4) do
+		if v == true then
+			count = count + 1
+		end
+	end
+
+	return count
+
+end
+
+local function PoHCheckR5()
+	local PrayerofHealingHP = A.GetToggle(2, "PrayerofHealingHP")
+	
+	if (Unit("raid21"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid21"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group5.member1 = true else RaidSubGroup.group5.member1 = false
+	end
+	if (Unit("raid22"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid22"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group5.member2 = true else RaidSubGroup.group5.member2 = false
+	end	
+	if (Unit("raid23"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid23"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group5.member3 = true else RaidSubGroup.group5.member3 = false
+	end	
+	if (Unit("raid24"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid24"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group5.member4 = true else RaidSubGroup.group5.member4 = false
+	end	
+	if (Unit("raid25"):HealthDeficit() >= HealCalc(A.PrayerofHealing) and PrayerofHealingHP >= 100) or (Unit("raid25"):HealthPercent() <= PrayerofHealingHP and PrayerofHealingHP <= 99) then
+		RaidSubGroup.group5.member5 = true else RaidSubGroup.group5.member5 = false
+	end
+
+	local count = 0
+	for i, v in pairs(RaidSubGroup.group5) do
+		if v == true then
+			count = count + 1
+		end
+	end
+
+	return count
+
+end
 
 --- ======= ACTION LISTS =======
 -- [3] Single Rotation
-A[3] = function(icon, isMulti)  
+A[3] = function(icon, isMulti) 
     --------------------
     --- ROTATION VAR ---
     --------------------
@@ -322,7 +503,6 @@ A[3] = function(icon, isMulti)
     local inCombat = Unit(player):CombatTime() > 0
     local combatTime = Unit(player):CombatTime()
     local UseAoE = A.GetToggle(2, "AoE")
-
 
 	if (Player:IsCasting() or Player:IsChanneling()) then
 		canCast = false
@@ -397,6 +577,9 @@ A[3] = function(icon, isMulti)
 		if A.Dispersion:IsReady(player) and Unit(player):HealthPercent() <= DefensivesHP then
 			return A.Dispersion:Show(icon)
 		end
+		if A.DesperatePrayer:IsReady(player) and Unit(player):HealthPercent() <= DefensivesHP then
+			return A.DesperatePrayer:Show(icon)
+		end		
 	end
 
 	--PsychicScream
@@ -404,7 +587,7 @@ A[3] = function(icon, isMulti)
 		-- Enemy healer
 		if A.Zone == "pvp" then 
 			local enemyHealerInRange, _, enemyHealerUnitID = EnemyTeam("HEALER"):PlayersInRange(1)
-			if enemyHealerInRange and not UnitIsUnit(enemyHealerUnitID, "target") and ((Unit(enemyHealerUnitID):GetRange() > 0 and Unit(enemyHealerUnitID):GetRange() <= 10) or (petIsActive and Temp.IsPetInMelee(enemyHealerUnitID) and Unit(pet):GetRange() <= 10)) and A.PsychicScream:AbsentImun(enemyHealerUnitID, Temp.AuraForFear) and Unit(enemyHealerUnitID):IsControlAble("fear") then 
+			if enemyHealerInRange and not UnitIsUnit(enemyHealerUnitID, "target") and ((Unit(enemyHealerUnitID):GetRange() > 0 and Unit(enemyHealerUnitID):GetRange() <= 8) or (petIsActive and Temp.IsPetInMelee(enemyHealerUnitID) and Unit(pet):GetRange() <= 8)) and A.PsychicScream:AbsentImun(enemyHealerUnitID, Temp.AuraForFear) and Unit(enemyHealerUnitID):IsControlAble("fear") then 
 				return A.PsychicScream:Show(icon)
 			end 
 		end 
@@ -413,7 +596,7 @@ A[3] = function(icon, isMulti)
 		local namePlateUnitID
 		local damagersOnPlayer = 0
 		for namePlateUnitID in pairs(ActiveUnitPlates) do                 
-			if Unit(namePlateUnitID):IsPlayer() and ((Unit(namePlateUnitID):GetRange() > 0 and Unit(namePlateUnitID):GetRange() <= 10) or (petIsActive and Temp.IsPetInMelee(namePlateUnitID) and Unit(pet):GetRange() <= 10)) and A.PsychicScream:AbsentImun(namePlateUnitID, Temp.AuraForFear) and Unit(namePlateUnitID):IsControlAble("fear") then 
+			if Unit(namePlateUnitID):IsPlayer() and ((Unit(namePlateUnitID):GetRange() > 0 and Unit(namePlateUnitID):GetRange() <= 8) or (petIsActive and Temp.IsPetInMelee(namePlateUnitID) and Unit(pet):GetRange() <= 8)) and A.PsychicScream:AbsentImun(namePlateUnitID, Temp.AuraForFear) and Unit(namePlateUnitID):IsControlAble("fear") then 
 				if UnitIsUnit(namePlateUnitID .. "target", player) and Unit(namePlateUnitID):IsDamager() then 
 					damagersOnPlayer = damagersOnPlayer + 1
 				end 
@@ -445,6 +628,19 @@ A[3] = function(icon, isMulti)
 		return A.EscapeArtist:Show(icon)
 	end 	  
 
+	--BUFFS
+	if A.VampiricEmbrace:IsReady(player) and Unit(player):HasBuffs(A.VampiricEmbrace.ID, true) == 0 then
+		return A.VampiricEmbrace:Show(icon)
+	end
+
+	if A.InnerFire:IsReady(player) and Unit(player):HasBuffs(A.InnerFire.ID, true) == 0 then
+		return A.InnerFire:Show(icon)
+	end		
+	
+	if A.PowerWordFortitude:IsReady(player) and Unit(player):HasBuffs(A.PowerWordFortitude.ID, true) == 0 and (unitID == player or unitID == nil) then
+		return A.PowerWordFortitude:Show(icon)
+	end	
+
 	
  ------------------------------------------------------------------------------------------------
 
@@ -465,20 +661,7 @@ A[3] = function(icon, isMulti)
 		
 		if Temp.VampiricTouchDelay > 0 then
 			Temp.VampiricTouchDelay = Temp.VampiricTouchDelay - 1
-		end
-
-		--BUFFS
-		if A.VampiricEmbrace:IsReady(player) and Unit(player):HasBuffs(A.VampiricEmbrace.ID, true) == 0 then
-			return A.VampiricEmbrace:Show(icon)
-		end
-
-		if A.InnerFire:IsReady(player) and Unit(player):HasBuffs(A.InnerFire.ID, true) == 0 then
-			return A.InnerFire:Show(icon)
 		end		
-		
-		if A.PowerWordFortitude:IsReady(player) and Unit(player):HasBuffs(A.PowerWordFortitude.ID, true) == 0 then
-			return A.PowerWordFortitude:Show(icon)
-		end			
 
 		--STOPCAST
 		if A.GetToggle(1, "StopCast") and Player:IsChanneling() == A.MindFlay:Info() then
@@ -566,13 +749,17 @@ A[3] = function(icon, isMulti)
 		local getmembersAll = HealingEngine.GetMembersAll()		
         local unitGUID = UnitGUID(unitID)    	
 		local DungeonGroup = TeamCache.Friendly.Size >= 2 and TeamCache.Friendly.Size <= 5
-		local RaidGroup = TeamCache.Friendly.Size >= 5 		
+		local RaidGroup = TeamCache.Friendly.Size >= 5 	
 			
 		local Cleanse = A.GetToggle(2, "Cleanse")
 		local GreaterHealHP = A.GetToggle(2, "GreaterHealHP")
 		local FlashHealHP = A.GetToggle(2, "FlashHealHP")	
 		local BindingHealHP = A.GetToggle(2, "BindingHealHP")
 		local PrayerofHealingHP = A.GetToggle(2, "PrayerofHealingHP")
+		local PrayerofHealingUnits = A.GetToggle(2, "PrayerofHealingUnits")
+		local CircleofHealingHP = A.GetToggle(2, "CircleofHealingHP")
+		local BlanketRenew = A.GetToggle(2, "BlanketRenew")	
+		local RenewHP = A.GetToggle(2, "RenewHP")			
 		
 		--[[if canCast and Player:IsStaying() and HealingEngine.GetBelowHealthPercentUnits(DivineHymnHP, 30) > DivineHymnTargets then
 			if A.InnerFocus:IsReady(player) then
@@ -584,19 +771,60 @@ A[3] = function(icon, isMulti)
 			end
 		
 		end]]
-	
+
+		--Emergency Healing
+		local Emergency = Unit(unitID):HealthPercent() > 0 and Unit(unitID):TimeToDie() <= (A.GetGCD() + A.GetCurrentGCD() + (TMW.UPD_INTV or 0) + GetPing()) and Unit(unitID):HealthPercentLosePerSecond() > (Unit(unitID):HealthPercentGainPerSecond() + Unit(unitID):Health())	
+		if Emergency then
+			if A.GuardianSpirit:IsReady(unitID) then
+				return A.GuardianSpirit:Show(icon)
+			end
+			if A.CircleofHealing:IsReady(unitID) then
+				return A.CircleofHealing:Show(icon)
+			end
+			if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HasBuffs(A.WeakenedSoul.ID) == 0 then
+				return A.PowerWordShield:Show(icon)
+			end
+			if A.FlashHeal:IsReady(unitID) then
+				return A.FlashHeal:Show(icon)
+			end
+		end
+
 		--PrayerofHealing
+		local isR1target = UnitIsUnit(unitID, "raid1") or UnitIsUnit(unitID, "raid2") or UnitIsUnit(unitID, "raid3") or UnitIsUnit(unitID, "raid4") or UnitIsUnit(unitID, "raid5")
+		local isR2target = UnitIsUnit(unitID, "raid6") or UnitIsUnit(unitID, "raid7") or UnitIsUnit(unitID, "raid8") or UnitIsUnit(unitID, "raid9") or UnitIsUnit(unitID, "raid10")
+		local isR3target = UnitIsUnit(unitID, "raid11") or UnitIsUnit(unitID, "raid12") or UnitIsUnit(unitID, "raid13") or UnitIsUnit(unitID, "raid14") or UnitIsUnit(unitID, "raid15")
+		local isR4target = UnitIsUnit(unitID, "raid16") or UnitIsUnit(unitID, "raid17") or UnitIsUnit(unitID, "raid18") or UnitIsUnit(unitID, "raid19") or UnitIsUnit(unitID, "raid20")
+		local isR5target = UnitIsUnit(unitID, "raid21") or UnitIsUnit(unitID, "raid22") or UnitIsUnit(unitID, "raid23") or UnitIsUnit(unitID, "raid24") or UnitIsUnit(unitID, "raid25")		
+	
 		if A.PrayerofHealing:IsReady(unitID) and not isMoving and canCast then
+			if (isR1target and PoHCheckR1() >= PrayerofHealingUnits) or (isR2target and PoHCheckR2() >= PrayerofHealingUnits) or (isR3target and PoHCheckR3() >= PrayerofHealingUnits) or (isR4target and PoHCheckR4() >= PrayerofHealingUnits) or (isR5target and PoHCheckR5() >= PrayerofHealingUnits) then
+				if A.InnerFocus:IsReady(player) then
+					return A.InnerFocus:Show(icon)
+				end
+				return A.PrayerofHealing:Show(icon)
+			end
+		end
+
+		if A.PrayerofHealing:IsReady(unitID) and canCast and Unit(unitID):InParty() then
 			if PrayerofHealingHP >= 100 then
 				if Unit(unitID):HealthDeficit() >= HealCalc(A.PrayerofHealing) then
 					return A.PrayerofHealing:Show(icon)
 				end
-			elseif PrayerofHealing <= 99 then
-				if Unit(unitID):HealthPercent() <= PrayerofHealingHP then
-					return A.PrayerofHealing:Show(icon)
-				end
+			elseif Unit(unitID):HealthPercent() <= PrayerofHealingHP then
+				return A.PrayerofHealing:Show(icon)
 			end
-		end	
+		end
+
+		--CircleofHealing
+		if A.CircleofHealing:IsReady(unitID) and canCast and (Unit(unitID):InParty() or Unit(unitID):InRaid()) then
+			if CircleofHealingHP >= 100 then
+				if Unit(unitID):HealthDeficit() >= HealCalc(A.CircleofHealing) then
+					return A.CircleofHealing:Show(icon)
+				end
+			elseif Unit(unitID):HealthPercent() <= CircleofHealingHP then
+				return A.CircleofHealing:Show(icon)
+			end
+		end
 	
 		--Cleansing
 		if A.AbolishDisease:IsReady(unitID) and Cleanse then
@@ -647,16 +875,46 @@ A[3] = function(icon, isMulti)
 				end
 			end
 		end
+
+		--PrayerofMending
+		if A.PrayerofMending:IsReady(unitID) and (Unit(unitID):IsTanking() or Unit(unitID):IsTank()) and HealingEngine.GetBuffsCount(A.PrayerofMending.ID, 0, player) == 0 then 
+			return A.PrayerofMending:Show(icon)
+		end
+
+		--Renew + blanket option
+		if A.Renew:IsReady(unitID) and canCast and inCombat then
+			if Unit(unitID):IsTank() and Unit(unitID):HasBuffs(A.Renew.ID, true) == 0 then
+				return A.Renew:Show(icon)
+			end
+			if BlanketRenew then
+				for i = 1, #getmembersAll do 
+					if Unit(getmembersAll[i].Unit):IsPlayer() and not IsUnitEnemy(getmembersAll[i].Unit) and Unit(getmembersAll[i].Unit):HealthPercent() < 95 and A.Renew:IsReady(getmembersAll[i].Unit) and Unit(getmembersAll[i].Unit):GetRange() <= 40 and Unit(getmembersAll[i].Unit):HasBuffs(A.Renew.ID, true) == 0 then 
+						if UnitGUID(getmembersAll[i].Unit) ~= currGUID then
+							HealingEngine.SetTarget(getmembersAll[i].Unit, 0.3)      
+							return A.Renew:Show(icon)
+						end    
+					end                
+				end    
+			end
+			if not BlanketRenew then
+				if Unit(unitID):HealthPercent() < RenewHP and Unit(unitID):HasBuffs(A.Renew.ID, true) == 0 then 
+					return A.Renew:Show(icon)
+				end
+			end
+		end
 		
 		
 	end
 
 ---------------------------------------------------------------------------------------------------
-
+	local HealingStyle = A.GetToggle(2, "HealingStyle")
+	
     if A.IsUnitEnemy("target") then 
         return EnemyRotation("target")
-    elseif A.IsUnitFriendly("target") then
+    elseif A.IsUnitFriendly("target") and HealingStyle == "Target" and Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 then
         return HealingRotation("target")
+	elseif A.IsUnitFriendly("focus") and HealingStyle == "Focus" and Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 then
+		return HealingRotation("focus")
     end 
         
 end
