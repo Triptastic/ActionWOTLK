@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.00 (23 August 2022)",
+    DateTime = "v1.00 (24 August 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -51,7 +51,15 @@ A.Data.ProfileUI = {
                         frFR = "Activer les actions multi-unités",
                     }, 
                     M = {},
-                },				
+                },
+			},
+			{
+                {-- MACRO LABEL
+                    E = "Label",
+                    L = {
+                        ANY = "AoE detection currently only works with pet thanks to limitations in WoW API. Please drag the following pet abilities that your pet knows to ANY slot on your action bar (does not need to be bound): Claw, Smack, Gore, Bite. Reload your UI after putting the ability on your action bar.",
+                    },
+                },			
             },
 			{
 				{ -- RECOVERY POTION CONTROLLER
@@ -106,31 +114,72 @@ A.Data.ProfileUI = {
                     },                     
                     M = {},
                 },
+                { -- MendPet
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "MendPetHP",
+                    DBV = 40,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Mend Pet HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Mend Pet.", 
+                    },                     
+                    M = {},
+                },				
 			},
-            { -- WARLOCK HEADER
+            { -- HUNTER HEADER
                 {
                     E = "Header",
                     L = {
-                        ANY = " ====== WARLOCK ====== ",
+                        ANY = " ====== HUNTER ====== ",
                     },
                 },
             },
 			{
-				{ -- Spec
+				{ -- STING CONTROLLER
                     E = "Dropdown",                                                         
                     OT = {
-						{ text = "Beast Mastery", value = "BeastMastery" },
-						{ text = "Marksmanship", value = "Marksmanship" },
-						{ text = "Survival", value = "Survival" },
-						{ text = "Automatic", value = "Auto" },						
+						{ text = "Serpent Sting", value = "SerpentSting" },
+						{ text = "Scorpid Sting", value = "ScorpidSting" },
+						{ text = "Viper Sting", value = "ViperSting" },	
+						{ text = "None", value = "None" },						
                     },
-                    DB = "SpecSelect",
-                    DBV = "Auto",
+                    DB = "StingController",
+                    DBV = "ViperSting",
                     L = { 
-                        ANY = "Specialisation",
+                        ANY = "Sting Usage",
                     }, 
                     TT = { 
-                        ANY = "Pick your specialisation!", 
+                        ANY = "Pick your sting to use in your rotation. Selecting Viper Sting will have it only be used if target has mana, otherwise it will use Serpent Sting.", 
+                    }, 
+                    M = {},
+                },
+			},
+			{
+				{ -- Static Hunter's Mark
+                    E = "Checkbox", 
+                    DB = "StaticMark",
+                    DBV = true,
+                    L = { 
+                        ANY = "Static Hunter's Mark", 
+                    }, 
+                    TT = { 
+                        ANY = "Check this box to not change your Hunter's Mark target until it expires/dies (useful if you swap targets a lot).", 
+                    }, 
+                    M = {},
+                },
+				{ -- Static Hunter's Mark
+                    E = "Checkbox", 
+                    DB = "BossMark",
+                    DBV = false,
+                    L = { 
+                        ANY = "Hunter's Mark Boss Only", 
+                    }, 
+                    TT = { 
+                        ANY = "Check this box to only use Hunter's Mark on bosses.", 
                     }, 
                     M = {},
                 },				
@@ -139,72 +188,131 @@ A.Data.ProfileUI = {
                 {
                     E = "LayoutSpace",                                                                         
                 },
+            },			
+			{
+				{ -- FreezingTrapPvE
+                    E = "Checkbox", 
+                    DB = "FreezingTrapPvE",
+                    DBV = true,
+                    L = { 
+                        ANY = "Freezing Trap Aggro", 
+                    }, 
+                    TT = { 
+                        ANY = "Drop a Freezing Trap if you have aggro on an enemy in melee and in combat with multiple enemies.", 
+                    }, 
+                    M = {},
+                },
+				{ -- FreezingTrapPvE
+                    E = "Checkbox", 
+                    DB = "ProtectFreeze",
+                    DBV = true,
+                    L = { 
+                        ANY = "Untarget Frozen", 
+                    }, 
+                    TT = { 
+                        ANY = "Automatically swap targets if accidentally targeting an enemy with Freezing Trap (only when in combat with mulitple enemies, make sure you're facing the other enemy you want to target).", 
+                    }, 
+                    M = {},
+                },
+			},
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
+            }, 			
+			{
+				{ -- ConcussiveShotPvE
+                    E = "Checkbox", 
+                    DB = "ConcussiveShotPvE",
+                    DBV = true,
+                    L = { 
+                        ANY = "Concussive Shot Aggro", 
+                    }, 
+                    TT = { 
+                        ANY = "Use Concussive Shot to slow target if aggro swaps to you.", 
+                    }, 
+                    M = {},
+                },					
+			},
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
+            }, 			
+			{
+				{
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Hawk", value = 1 },
+						{ text = "Cheetah", value = 2 },
+						{ text = "Viper", value = 3 },
+                    },
+                    MULT = true,
+                    DB = "AspectController",
+                    DBV = {
+                        [1] = true, 
+                        [2] = true,
+                        [3] = true,
+                    }, 
+                    L = { 
+                        ANY = "Automatic Aspects",
+                    }, 
+                    TT = { 
+                        ANY = "Automatically use Aspects", 
+                    }, 
+                    M = {},
+                },
+			},			
+			{
+                { -- Mana Viper
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "ManaViperStart",
+                    DBV = 10, -- Set healthpercentage @30% life. 
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Viper Aspect Mana Start(%)",
+                    },
+                    TT = { 
+                        ANY = "Value (%) to turn on Aspect of the Viper. )", 
+                    },                     
+                    M = {},
+                },	
+                { -- Mana Viper
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "ManaViperEnd",
+                    DBV = 30, -- Set healthpercentage @30% life. 
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Viper Aspect Mana End(%)",
+                    },
+                    TT = { 
+                        ANY = "Value (%) to turn off Aspect of the Viper.)", 
+                    },                     
+                    M = {},
+                },					
+			},			
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
             },	
-			{ -- MACRO LABEL
-                {
-                    E = "Label",
-                    L = {
-                        ANY = "AoE detection currently only works with pet thanks to limitations in WoW API. Please drag the following pet abilities to ANY slot on your action bar (does not need to be bound): ",
-                    },
-                },
-            },		
-			{ -- AFFLICTION HEADER
-                {
-                    E = "Header",
-                    L = {
-                        ANY = " ====== BEAST MASTERY ====== ",
-                    },
-                },
-            },
-			{ -- LABEL
-                {
-                    E = "Label",
-                    L = {
-                        ANY = "Placeholder",
-                    },
-                },
-            },			
-            { -- LAYOUT SPACE   
-                {
-                    E = "LayoutSpace",                                                                         
-                },
-            },
-			{ -- DEMONOLOGY HEADER
-                {
-                    E = "Header",
-                    L = {
-                        ANY = " ====== MARKSMANSHIP ====== ",
-                    },
-                },
-            },
-			{ -- MACRO LABEL
-                {
-                    E = "Label",
-                    L = {
-                        ANY = "Placeholder.",
-                    },
-                },
-            },				
-            { -- LAYOUT SPACE   
-                {
-                    E = "LayoutSpace",                                                                         
-                },
-            },			
-			{ -- DESTRUCTION HEADER
-                {
-                    E = "Header",
-                    L = {
-                        ANY = " ====== SURVIVAL ====== ",
-                    },
-                },
-            },
-			{ -- LABEL
-                {
-                    E = "Label",
-                    L = {
-                        ANY = "Placeholder.",
-                    },
-                },
-            },				
+            { -- HUNTER OPTIONS
+				{ -- MultiShotST
+                    E = "Checkbox", 
+                    DB = "MultiShotST",
+                    DBV = true,
+                    L = { 
+                        ANY = "MultiShot Single Target", 
+                    }, 
+                    TT = { 
+                        ANY = "MultiShot on single target if mana isn't too low.", 
+                    }, 
+                    M = {},
+                },				
+            },					
 		},
 }

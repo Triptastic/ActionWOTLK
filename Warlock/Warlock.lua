@@ -481,43 +481,7 @@ A[3] = function(icon, isMulti)
 	
     if A.DeathCoil:IsReady(unitID) and Unit(player):IsExecuted() and A.DeathCoil:AbsentImun(target, Temp.AuraForCC) then 
         return A.DeathCoil:Show(icon)
-    end	
-
-	--Howl of Terror from Ayni
-	if A.IsInPvP and A.HowlofTerror:IsReady(player, true) then 
-		-- Enemy healer
-		if A.Zone == "pvp" then 
-			local enemyHealerInRange, _, enemyHealerUnitID = EnemyTeam("HEALER"):PlayersInRange(1)
-			if enemyHealerInRange and not UnitIsUnit(enemyHealerUnitID, "target") and ((Unit(enemyHealerUnitID):GetRange() > 0 and Unit(enemyHealerUnitID):GetRange() <= 10) or (petIsActive and Temp.IsPetInMelee(enemyHealerUnitID) and Unit(pet):GetRange() <= 10)) and A.HowlofTerror:AbsentImun(enemyHealerUnitID, Temp.AuraForFear) and Unit(enemyHealerUnitID):IsControlAble("fear") then 
-				return A.HowlofTerror:Show(icon)
-			end 
-		end 
-		
-		-- Enemy players 
-		local namePlateUnitID
-		local damagersOnPlayer = 0
-		for namePlateUnitID in pairs(ActiveUnitPlates) do                 
-			if Unit(namePlateUnitID):IsPlayer() and ((Unit(namePlateUnitID):GetRange() > 0 and Unit(namePlateUnitID):GetRange() <= 10) or (petIsActive and Temp.IsPetInMelee(namePlateUnitID) and Unit(pet):GetRange() <= 10)) and A.HowlofTerror:AbsentImun(namePlateUnitID, Temp.AuraForFear) and Unit(namePlateUnitID):IsControlAble("fear") then 
-				if UnitIsUnit(namePlateUnitID .. "target", player) and Unit(namePlateUnitID):IsDamager() then 
-					damagersOnPlayer = damagersOnPlayer + 1
-				end 
-				
-				-- Multi-fear all damager who sits on player                    
-				if damagersOnPlayer >= 3 then 
-					return A.HowlofTerror:Show(icon)
-				end 
-				
-				-- Fear nearest not selected in target:
-				-- 1. With any burst buffs
-				-- 2. With any casting spell 
-				-- 3. If it's enemy healer 
-				-- 4. If in unit's own target on execute phase any unit 
-				if not UnitIsUnit(namePlateUnitID, "target") and (Unit(namePlateUnitID .. "target"):IsExecuted() or Unit(namePlateUnitID):IsCastingRemains() > 0 or Unit(namePlateUnitID):HasBuffs("DamageBuffs") > 2 or Unit(namePlateUnitID):IsHealer()) and (not Unit(namePlateUnitID):IsFocused() or Unit(namePlateUnitID):GetRealTimeDMG() == 0) then 
-					return A.HowlofTerror:Show(icon)
-				end 
-			end 
-		end 
-	end         	
+    end	       	
     
 	--Will of the Forsaken
 	if A.WilloftheForsaken:AutoRacial() then 

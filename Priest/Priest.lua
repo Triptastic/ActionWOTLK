@@ -624,7 +624,7 @@ A[3] = function(icon, isMulti)
 	end 
 	
 	-- EscapeArtist
-	if A.EscapeArtist:AutoRacial() and not mouseoverInRange30 and not targetInRange30 then 
+	if A.EscapeArtist:AutoRacial() then 
 		return A.EscapeArtist:Show(icon)
 	end 	  
 
