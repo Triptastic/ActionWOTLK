@@ -138,7 +138,7 @@ Action[Action.PlayerClass]                     = {
 	LivingBomb				= Create({ Type = "Spell", ID = 44457, useMaxRank = true        }),	
 	PresenceofMind			= Create({ Type = "Spell", ID = 12043, useMaxRank = true        }),
 	Pyroblast				= Create({ Type = "Spell", ID = 11366, useMaxRank = true        }),	
-	SlowFall				= Create({ Type = "Spell", ID = 31589, useMaxRank = true        }),
+	DeepFreeze				= Create({ Type = "Spell", ID = 44572, useMaxRank = true        }),	
 
     -- Potions
     MajorManaPotion                            = Create({ Type = "Potion", ID = 13444	}),
@@ -162,6 +162,10 @@ Action[Action.PlayerClass]                     = {
 	HotStreak					= Create({ Type = "Spell", ID = 48108, useMaxRank = true, Hidden = true       }),	
 	HotStreakTalent				= Create({ Type = "Spell", ID = 44445, useMaxRank = true, Hidden = true       }),
 	Firestarter					= Create({ Type = "Spell", ID = 54741, useMaxRank = true, Hidden = true       }),	
+	ArcaneEmpowerment			= Create({ Type = "Spell", ID = 31579, useMaxRank = true, Hidden = true       }),	
+	BrainFreeze					= Create({ Type = "Spell", ID = 57761, useMaxRank = true, Hidden = true       }),	
+	FingersofFrost				= Create({ Type = "Spell", ID = 74396, useMaxRank = true, Hidden = true       }),
+	WintersChill				= Create({ Type = "Spell", ID = 74396, useMaxRank = true, Hidden = true       }),	
 
     --Misc
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
@@ -296,6 +300,7 @@ A[3] = function(icon, isMulti)
     local UseAoE = A.GetToggle(2, "AoE")
 	local AoEEnemies = A.GetToggle(2, "AoEEnemies")
 	local canAoE = UseAoE and MultiUnits:GetActiveEnemies(10, 30) >= AoEEnemies
+	local isFrozen = Unit(player):HasBuffs(A.FingersofFrost.ID) > 0
 
 	if (Player:IsCasting() or Player:IsChanneling()) then
 		canCast = false
@@ -385,6 +390,10 @@ A[3] = function(icon, isMulti)
 			return UseManaGem:Show(icon)
 		end
 	end
+
+	if A.ArcaneIntellect:IsReady(unitID) and Unit(player):HasBuffs(A.ArcaneIntellect.ID or A.ArcaneBrilliance.ID, true) == 0 and (unitID == player or unitID == nil) then
+		return A.ArcaneIntellect:Show(icon)
+	end	
  
     ------------------------------------------------------
     ---------------- ENEMY UNIT ROTATION -----------------
@@ -414,7 +423,7 @@ A[3] = function(icon, isMulti)
 				return A.ArcanePower:Show(icon)
 			end
 			
-			if A.IcyVeins:IsReady(player) then
+			if A.IcyVeins:IsReady(player) and Unit(player):HasBuffs(A.IcyVeins.ID) == 0 then
 				return A.IcyVeins:Show(icon)
 			end
 			
@@ -445,6 +454,22 @@ A[3] = function(icon, isMulti)
 			end    			
 		end
 
+		if A.DeepFreeze:IsReady(unitID) then
+			return A.DeepFreeze:Show(icon)
+		end
+		
+		if A.SummonWaterElemental:IsReady(player) and inCombat then
+			return A.SummonWaterElemental:Show(icon)
+		end
+		
+		if Unit(player):HasBuffs(A.BrainFreeze.ID) > 0 then
+			if A.FrostfireBolt:IsReady(unitID) then 
+				return A.FrostfireBolt:Show(icon)
+			elseif A.Fireball:IsReady(unitID) then
+				return A.Fireball:Show(icon)
+			end
+		end
+
 		if A.Pyroblast:IsReady(unitID) and Unit(player):HasBuffs(A.HotStreak.ID, true) > 0 then
 			return A.Pyroblast:Show(icon)
 		end
@@ -463,6 +488,10 @@ A[3] = function(icon, isMulti)
 
 		if A.DragonsBreath:IsReady(player) and UseAoE and MultiUnits:GetByRange(10, 10) >= AoEEnemies and Unit(player):HasBuffs(A.Firestarter.ID) == 0 then
 			return A.DragonsBreath:Show(icon)
+		end
+
+		if A.ConeofCold:IsReady(player) and UseAoE and MultiUnits:GetByRange(10, 10) >= AoEEnemies then
+			return A.ConeofCold:Show(icon)
 		end
 
 		if A.Blizzard:IsReady(player) and not isMoving and canAoE then
@@ -496,13 +525,21 @@ A[3] = function(icon, isMulti)
 			end
 		end
 
-		if A.ArcaneBlast:IsReady(unitID) and not isMoving and Unit(player):HasDeBuffsStacks(A.ArcaneBlast.ID, true) < 4 then
+		if A.ArcaneBlast:IsReady(unitID) and not isMoving and Unit(player):HasDeBuffsStacks(A.ArcaneBlast.ID, true) < 4 and A.ArcaneEmpowerment:IsTalentLearned() then
 			return A.ArcaneBlast:Show(icon)
+		end
+		
+		if A.Frostbolt:IsReady(unitID) and not isMoving then
+			return A.Frostbolt:Show(icon)
 		end
 		
 		if A.FireBlast:IsReady(unitID) then
 			return A.FireBlast:Show(icon)
 		end		
+
+		if A.IceLance:IsReady(unitID) then
+			return A.IceLance:Show(icon)
+		end
 
     end
 
