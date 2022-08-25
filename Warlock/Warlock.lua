@@ -78,6 +78,7 @@ Action[Action.PlayerClass]                     = {
 	Perception									= Create({ Type = "Spell", ID = 58985		}),
 	EscapeArtist								= Create({ Type = "Spell", ID = 20589		}),
 	BloodFury									= Create({ Type = "Spell", ID = 20572		}),
+	Berserking									= Create({ Type = "Spell", ID = 26297		}),	
 	WilloftheForsaken							= Create({ Type = "Spell", ID = 7744		}),
 	ArcaneTorrent								= Create({ Type = "Spell", ID = 28730		}),	
 	
@@ -581,6 +582,26 @@ A[3] = function(icon, isMulti)
 		if DoPurge then 
 			return DoPurge:Show(icon)
         end
+
+		if inCombat and BurstIsON(unitID) then
+			if A.BloodFury:IsReady(player) then
+				return A.BloodFury:Show(icon)
+			end
+			
+			if A.Berserking:IsReady(player) then
+				return A.Berserking:Show(icon)
+			end
+			
+			--Trinket 1
+			if A.Trinket1:IsReady(player) then
+				return A.Trinket1:Show(icon)    
+			end
+			
+			--Trinket 2
+			if A.Trinket2:IsReady(player) then
+				return A.Trinket2:Show(icon)    
+			end    			
+		end
 		
 		--AFFLICTION
 		if InRange and (SpecSelect == "Affliction" or (SpecSelect == "Auto" and A.Haunt:IsTalentLearned())) then

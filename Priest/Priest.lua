@@ -79,6 +79,7 @@ Action[Action.PlayerClass]                     = {
 	Perception									= Create({ Type = "Spell", ID = 58985		}),
 	EscapeArtist								= Create({ Type = "Spell", ID = 20589		}),
 	BloodFury									= Create({ Type = "Spell", ID = 20572		}),
+	Berserking									= Create({ Type = "Spell", ID = 26297		}),	
 	WilloftheForsaken							= Create({ Type = "Spell", ID = 7744		}),
 	ArcaneTorrent								= Create({ Type = "Spell", ID = 28730		}),	
 	
@@ -637,7 +638,7 @@ A[3] = function(icon, isMulti)
 		return A.InnerFire:Show(icon)
 	end		
 	
-	if A.PowerWordFortitude:IsReady(unitID) and Unit(player):HasBuffs(A.PowerWordFortitude.ID, true) == 0 and (unitID == player or unitID == nil) then
+	if A.PowerWordFortitude:IsReady(unitID) and Unit(player):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID, true) == 0 and (unitID == player or unitID == nil) then
 		return A.PowerWordFortitude:Show(icon)
 	end	
 
@@ -695,6 +696,26 @@ A[3] = function(icon, isMulti)
 	
 		if A.Shadowform:IsReady(player) and Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
 			return A.Shadowform:Show(icon)
+		end
+
+		if inCombat and BurstIsON(unitID) then	
+			if A.BloodFury:IsReady(player) then
+				return A.BloodFury:Show(icon)
+			end
+			
+			if A.Berserking:IsReady(player) then
+				return A.Berserking:Show(icon)
+			end
+			
+			--Trinket 1
+			if A.Trinket1:IsReady(player) then
+				return A.Trinket1:Show(icon)    
+			end
+			
+			--Trinket 2
+			if A.Trinket2:IsReady(player) then
+				return A.Trinket2:Show(icon)    
+			end    			
 		end
 		
 		local DPSHEAL = A.GetToggle(2, "DPSHEAL")
