@@ -157,6 +157,8 @@ Action[Action.PlayerClass]                     = {
 	SerendipityBuff	                            = Create({ Type = "Spell", ID = 63734,    Hidden = true }),
     EmpoweredHealing							= Create({ Type = "Spell", ID = 33158,    isTalent = true, useMaxRank = true,    Hidden = true }),	
     SpiritualHealing							= Create({ Type = "Spell", ID = 14898,    isTalent = true, useMaxRank = true,    Hidden = true }),	
+    IPWShield									= Create({ Type = "Spell", ID = 14748,    isTalent = true, useMaxRank = true,    Hidden = true }),
+    FocusedPower								= Create({ Type = "Spell", ID = 33186,    isTalent = true, useMaxRank = true,    Hidden = true }),	
 	
     --Misc
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
@@ -316,17 +318,20 @@ local function HealCalc(heal)
 	local EmpoweredHealingModGreater = A.EmpoweredHealing:GetTalentRank() * 8 / 100
 	local EmpoweredHealingMod = A.EmpoweredHealing:GetTalentRank() * 4 / 100	
 	local SpiritualHealingMod = A.SpiritualHealing:GetTalentRank() * 2 / 100
+	local FocusedPowerMod = A.FocusedPower:GetTalentRank() * 2 / 100
 	
 	if heal == A.GreaterHeal then
-		healamount = (A.GreaterHeal:GetSpellDescription()[2]+(1.611*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingModGreater)
+		healamount = (A.GreaterHeal:GetSpellDescription()[2]+(1.611*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingModGreater)*(1+FocusedPowerMod)
 	elseif heal == A.FlashHeal then
-		healamount = (A.FlashHeal:GetSpellDescription()[2]+(0.807*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
+		healamount = (A.FlashHeal:GetSpellDescription()[2]+(0.807*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)*(1+FocusedPowerMod)
 	elseif heal == A.BindingHeal then
-		healamount = (A.BindingHeal:GetSpellDescription()[2]+(0.807*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
+		healamount = (A.BindingHeal:GetSpellDescription()[2]+(0.807*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)*(1+FocusedPowerMod)
 	elseif heal == A.CircleofHealing then
-		healamount = (A.CircleofHealing:GetSpellDescription()[2]+(0.402*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
+		healamount = (A.CircleofHealing:GetSpellDescription()[2]+(0.402*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)*(1+FocusedPowerMod)
 	elseif heal == A.PrayerofHealing then
-		healamount = (A.PrayerofHealing:GetSpellDescription()[2]+(0.526*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)
+		healamount = (A.PrayerofHealing:GetSpellDescription()[2]+(0.526*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)*(1+FocusedPowerMod)
+	elseif heal == A.Penance then
+		healamount = ((A.Penance:GetSpellDescription()[2]+(0.526*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)*(1+FocusedPowerMod))*2.5
 	end
 
 	return healamount * globalhealmod
@@ -573,14 +578,18 @@ A[3] = function(icon, isMulti)
     --##### DEFENSIVES #####
     --######################	
 	
-	local DefensivesHP = A.GetToggle(2, "DefensivesHP")
+	local DesperatePrayerHP = A.GetToggle(2, "DesperatePrayerHP")
 	if inCombat then
-		if A.Dispersion:IsReady(player) and Unit(player):HealthPercent() <= DefensivesHP then
-			return A.Dispersion:Show(icon)
-		end
-		if A.DesperatePrayer:IsReady(player) and Unit(player):HealthPercent() <= DefensivesHP then
+		if A.DesperatePrayer:IsReady(player) and Unit(player):HealthPercent() <= DesperatePrayerHP then
 			return A.DesperatePrayer:Show(icon)
 		end		
+	end
+
+	local DispersionHP = A.GetToggle(2, "DispersionHP")
+	if inCombat then
+		if A.Dispersion:IsReady(player) and Unit(player):HealthPercent() <= DispersionHP then
+			return A.Dispersion:Show(icon)
+		end
 	end
 
 	--PsychicScream
@@ -651,7 +660,7 @@ A[3] = function(icon, isMulti)
 		local SpecSelect = A.GetToggle(2, "SpecSelect")
     
 		local SWPActive = Unit(unitID):HasDeBuffs(A.ShadowWordPain.ID, true) > 0
-		local VampiricTouchActive = Unit(unitID):HasDeBuffs(A.VampiricTouch.ID, true) >= A.VampiricTouch:GetSpellCastTime() and Temp.VampiricTouchDelay > 0
+		local VampiricTouchActive = Unit(unitID):HasDeBuffs(A.VampiricTouch.ID, true) > A.VampiricTouch:GetSpellCastTime()
 		local DevouringPlagueRefresh = Player:GetDeBuffsUnitCount(A.DevouringPlague.ID, true) < 1 
 		local DoTMissing = not SWPActive or not VampiricTouchActive or DevouringPlagueRefresh
 
@@ -729,12 +738,12 @@ A[3] = function(icon, isMulti)
 				return A.ShadowWordPain:Show(icon)
 			end
 			
-			if A.VampiricTouch:IsReady(unitID) and not isMoving and not VampiricTouchActive then
+			if A.VampiricTouch:IsReady(unitID) and not isMoving and not VampiricTouchActive and (Unit(player):GetSpellLastCast(A.VampiricTouch.ID) < 1 or Player:IsCasting() ~= A.VampiricTouch:Info()) then
 				return A.VampiricTouch:Show(icon)
 			end
 			
 			if A.DevouringPlague:IsReady(unitID) and DevouringPlagueRefresh then
-				return A.DevouringPlague:Show(icon)
+				return A.HolyNova:Show(icon)
 			end
 			
 			if A.MindBlast:IsReady(unitID) and not isMoving then
@@ -746,16 +755,16 @@ A[3] = function(icon, isMulti)
 				return A.MindSear:Show(icon)
 			end
 			
-			if A.MindFlay:IsReady(unitID) and not isMoving then
+			if A.MindFlay:IsReady(unitID) and not isMoving and A.MindBlast:GetCooldown() > 1 then
 				return A.MindFlay:Show(icon)
 			end
 			
-			if A.Smite:IsReady(unitID) and not isMoving then
+			if A.Smite:IsReady(unitID) and not isMoving and Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 then
 				return A.Smite:Show(icon)
 			end
 			
 			local SWDMoving = A.GetToggle(2, "SWDMoving")
-			if A.ShadowWordDeath:IsReady(unitID) and SWDMoving and Unit(player):Health() > SWDeathDmgCalc() then
+			if A.ShadowWordDeath:IsReady(unitID) and SWDMoving and isMoving and Unit(player):Health() > SWDeathDmgCalc() then
 				return A.ShadowWordDeath:Show(icon)
 			end
 			
@@ -783,7 +792,8 @@ A[3] = function(icon, isMulti)
 		local PrayerofHealingUnits = A.GetToggle(2, "PrayerofHealingUnits")
 		local CircleofHealingHP = A.GetToggle(2, "CircleofHealingHP")
 		local BlanketRenew = A.GetToggle(2, "BlanketRenew")	
-		local RenewHP = A.GetToggle(2, "RenewHP")			
+		local RenewHP = A.GetToggle(2, "RenewHP")
+		local PenanceHP = A.GetToggle(2, "PenanceHP")		
 		
 		--[[if canCast and Player:IsStaying() and HealingEngine.GetBelowHealthPercentUnits(DivineHymnHP, 30) > DivineHymnTargets then
 			if A.InnerFocus:IsReady(player) then
@@ -807,6 +817,9 @@ A[3] = function(icon, isMulti)
 			end
 			if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HasBuffs(A.WeakenedSoul.ID) == 0 then
 				return A.PowerWordShield:Show(icon)
+			end
+			if A.PainSuppression:IsReady(unitID) then
+				return A.PainSuppression:Show(icon)
 			end
 			if A.FlashHeal:IsReady(unitID) then
 				return A.FlashHeal:Show(icon)
@@ -839,6 +852,17 @@ A[3] = function(icon, isMulti)
 			end
 		end
 
+		--Penance
+		if A.Penance:IsReady(unitID) and canCast then
+			if PenanceHP >= 100 then
+				if Unit(unitID):HealthDeficit() >= HealCalc(A.Penance) then
+					return A.Penance:Show(icon)
+				end
+			elseif Unit(unitID):HealthPercent() <= PenanceHP then
+				return A.Penance:Show(icon)
+			end
+		end
+
 		--CircleofHealing
 		if A.CircleofHealing:IsReady(unitID) and canCast and (Unit(unitID):InParty() or Unit(unitID):InRaid()) then
 			if CircleofHealingHP >= 100 then
@@ -859,7 +883,6 @@ A[3] = function(icon, isMulti)
 				end                
 			end
 		end
-		
 
 		--GreaterHeal
 		if A.GreaterHeal:IsReady(unitID) and not isMoving and canCast and (Unit(player):HasBuffsStacks(A.SerendipityBuff.ID, true) >= 3 or not A.SerendipityTalent:IsTalentLearned()) then
@@ -898,6 +921,19 @@ A[3] = function(icon, isMulti)
 					return A.FlashHeal:Show(icon)
 				end
 			end
+		end
+
+		--Need to PWS blanket. Player can use macro to block PWS when wanting to mana save? Need brainstorm here.
+		local BlanketPWS = A.GetToggle(2, "BlanketPWS")
+		if A.PowerWordShield:IsReady(unitID) and A.IPWShield:IsTalentLearned() and PWSBlanket then
+			for i = 1, #getmembersAll do 
+				if Unit(getmembersAll[i].Unit):IsPlayer() and not IsUnitEnemy(getmembersAll[i].Unit) and Unit(getmembersAll[i].Unit):GetRange() <= 40 and Unit(getmembersAll[i].Unit):HasBuffs(A.PowerWordShield.ID, true) == 0  and Unit(getmembersAll[i].Unit):HasDeBuffs(A.WeakenedSoul.ID, true) == 0 then 
+					if UnitGUID(getmembersAll[i].Unit) ~= currGUID then
+						HealingEngine.SetTarget(getmembersAll[i].Unit, 0.3)      
+						return A.PowerWordShield:Show(icon)
+					end    
+				end                
+			end  
 		end
 
 		--PrayerofMending

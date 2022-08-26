@@ -89,21 +89,36 @@ A.Data.ProfileUI = {
                     },                     
                     M = {},
                 },							
-                { -- Defensives
+                { -- DesperatePrayer
                     E = "Slider",                                                     
                     MIN = 0, 
                     MAX = 100,                            
-                    DB = "DefensivesHP",
-                    DBV = 20,
+                    DB = "DesperatePrayerHP",
+                    DBV = 35,
                     ONOFF = true,
                     L = { 
-                        ANY = "Defensive Cooldown HP (%)",
+                        ANY = "Desperate Prayer HP (%)",
                     },
                     TT = { 
-                        ANY = "HP (%) to use Defensive cooldowns.", 
+                        ANY = "HP (%) to use Desperate Prayer.", 
                     },                     
                     M = {},
                 },
+                { -- Dispersion
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "DispersionHP",
+                    DBV = 20,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Dispersion HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Dispersion.", 
+                    },                     
+                    M = {},
+                },				
 			},
 			{
                 { -- ShadowfiendMana
@@ -165,7 +180,7 @@ A.Data.ProfileUI = {
                 {
                     E = "Header",
                     L = {
-                        ANY = " ====== HOLY ====== ",
+                        ANY = " ====== HOLY/DISCIPLINE ====== ",
                     },
                 },
             },
@@ -366,8 +381,53 @@ A.Data.ProfileUI = {
                         ANY = "Number of targets to use Prayer of Healing.", 
                     },                     
                     M = {},
-                },					
-			},			
+                },
+			},	
+			{
+                { -- PenanceHP
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "PenanceHP",
+                    DBV = 100,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Penance HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Penance.", 
+                    },                     
+                    M = {},
+                },
+				{ -- BlanketPWS
+                    E = "Checkbox", 
+                    DB = "BlanketPWS",
+                    DBV = true,
+                    L = { 
+                        ANY = "Blanket Power Word: Shield",
+                    }, 
+                    TT = { 
+                        ANY = "Spread Power Word: Shield over entire party/raid when able. Only works with Improved Power Word: Shield talent.",
+                    }, 
+                    M = {},
+                },				
+			},
+			{ -- PWS HEADER
+                {
+                    E = "Header",
+                    L = {
+                        ANY = " ====== IMPORTANT NOTE ABOUT POWER WORD: SHIELD ====== ",
+                    },
+                },
+            },				
+			{
+                {
+                    E = "Label",
+                    L = {
+                        ANY = "Right-click the Blanket Power Word: Shield checkbox to create a macro for toggling this option on or off. When this option is turned on, you will spam Power Word: Shield whenever it's available. I highly suggest you use a macro to toggle this on and off, and ONLY TURN IT ON WHEN YOU'RE EXPECTING RAID-WIDE DAMAGE SOON (it's also probably fine to keep it on always when in a dungeon). Remember to turn it off again when the raid-wide damage is over, otherwise there's a good chance you'll OOM yourself.",
+                    },
+                },
+			},
             { -- LAYOUT SPACE   
                 {
                     E = "LayoutSpace",                                                                         
