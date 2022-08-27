@@ -160,6 +160,13 @@ Action[Action.PlayerClass]                     = {
     IPWShield									= Create({ Type = "Spell", ID = 14748,    isTalent = true, useMaxRank = true,    Hidden = true }),
     FocusedPower								= Create({ Type = "Spell", ID = 33186,    isTalent = true, useMaxRank = true,    Hidden = true }),	
 	
+	--ArenaChecks
+    Bladestorm									= Create({ Type = "Spell", ID = 46924, useMaxRank = true,    Hidden = true }),		
+    KillingSpree								= Create({ Type = "Spell", ID = 51690, useMaxRank = true,    Hidden = true }),
+    CloakofShadows								= Create({ Type = "Spell", ID = 31224, useMaxRank = true,    Hidden = true }),	
+    Polymorph									= Create({ Type = "Spell", ID = 118, useMaxRank = true,    Hidden = true }),	
+	
+	
     --Misc
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
     Bloodlust									= Create({ Type = "Spell", ID = 2825        }),
@@ -499,6 +506,10 @@ local function PoHCheckR5()
 
 end
 
+local ArenaInterrupts = {
+
+}
+
 --- ======= ACTION LISTS =======
 -- [3] Single Rotation
 A[3] = function(icon, isMulti) 
@@ -597,7 +608,7 @@ A[3] = function(icon, isMulti)
 		-- Enemy healer
 		if A.Zone == "pvp" then 
 			local enemyHealerInRange, _, enemyHealerUnitID = EnemyTeam("HEALER"):PlayersInRange(1)
-			if enemyHealerInRange and not UnitIsUnit(enemyHealerUnitID, "target") and ((Unit(enemyHealerUnitID):GetRange() > 0 and Unit(enemyHealerUnitID):GetRange() <= 8) or (petIsActive and Temp.IsPetInMelee(enemyHealerUnitID) and Unit(pet):GetRange() <= 8)) and A.PsychicScream:AbsentImun(enemyHealerUnitID, Temp.AuraForFear) and Unit(enemyHealerUnitID):IsControlAble("fear") then 
+			if enemyHealerInRange and not UnitIsUnit(enemyHealerUnitID, "target") and Unit(enemyHealerUnitID):GetRange() > 0 and Unit(enemyHealerUnitID):GetRange() <= 8 and A.PsychicScream:AbsentImun(enemyHealerUnitID, Temp.AuraForFear) and Unit(enemyHealerUnitID):IsControlAble("fear") then 
 				return A.PsychicScream:Show(icon)
 			end 
 		end 
@@ -606,7 +617,7 @@ A[3] = function(icon, isMulti)
 		local namePlateUnitID
 		local damagersOnPlayer = 0
 		for namePlateUnitID in pairs(ActiveUnitPlates) do                 
-			if Unit(namePlateUnitID):IsPlayer() and ((Unit(namePlateUnitID):GetRange() > 0 and Unit(namePlateUnitID):GetRange() <= 8) or (petIsActive and Temp.IsPetInMelee(namePlateUnitID) and Unit(pet):GetRange() <= 8)) and A.PsychicScream:AbsentImun(namePlateUnitID, Temp.AuraForFear) and Unit(namePlateUnitID):IsControlAble("fear") then 
+			if Unit(namePlateUnitID):IsPlayer() and Unit(namePlateUnitID):GetRange() > 0 and Unit(namePlateUnitID):GetRange() <= 8 and A.PsychicScream:AbsentImun(namePlateUnitID, Temp.AuraForFear) and Unit(namePlateUnitID):IsControlAble("fear") then 
 				if UnitIsUnit(namePlateUnitID .. "target", player) and Unit(namePlateUnitID):IsDamager() then 
 					damagersOnPlayer = damagersOnPlayer + 1
 				end 
@@ -705,6 +716,12 @@ A[3] = function(icon, isMulti)
 	
 		if A.Shadowform:IsReady(player) and Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
 			return A.Shadowform:Show(icon)
+		end
+
+		if A.PowerWordShield:IsReady(player) and Unit(player):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(player):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
+			if A.IsInPvP or GetNumGroupMembers() == 0 then
+				return A.PowerWordShield:Show(icon)
+			end
 		end
 
 		if inCombat and BurstIsON(unitID) then	
@@ -985,8 +1002,98 @@ A[4] = nil
 
 A[5] = nil
 
-A[6] = nil
 
-A[7] = nil
+local function PartyRotation(icon, unitID)
+    if A.IsInPvP and (A.Zone == "pvp" or A.Zone == "arena") and not Player:IsStealthed() and not Player:IsMounted() then 
 
-A[8] = nil
+		if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(unitID):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
+			return A.PowerWordShield:Show(icon)
+		end
+		
+		if A.DispelMagic:IsReady(unitID, true) then 
+			if (AuraIsValid(unitID, "UseDispel", "Magic") or AuraIsValid(unitID, "UsePurge", "PurgeFriendly")) then 
+				return A.DispelMagic:Show(icon)
+			end 
+		else 
+			if (AuraIsValid(unitID, "UsePurge", "PurgeHigh") or AuraIsValid(unitID, "UsePurge", "PurgeLow")) then 
+				return A.DispelMagic:Show(icon)
+			end 
+		end 		
+		if A.AbolishDisease:IsReady(unitID, true) then
+			if AuraIsValid(unitID, "UseDispel", "Disease") then
+				return A.AbolishDisease:Show(icon)
+			end
+		end
+		
+		if A.Renew:IsReady(unitID) and Unit(unitID):HealthPercent() <= 85 and Unit(unitID):HasBuffs(A.Renew.ID) == 0 then
+			return A.Renew:Show(icon)
+		end
+		
+		if A.PrayerofMending:IsReady(unitID) and HealingEngine.GetBuffsCount(A.PrayerofMending.ID, 0, player) == 0 then
+			return A.PrayerofMending:Show(icon)
+		end
+		
+		if A.DivineHymn:IsReady(player) then
+			if Unit("party1" and "party2" and "party3"):HealthPercent() <= 60 then  -- check enemy interrupt CD list
+				if A.InnerFocus:IsReady(unitID) then
+					return A.InnerFocus:Show(icon)
+				end
+				return A.DivineHymn:Show(icon)
+			end
+		end
+		
+end
+
+local function ArenaRotation(icon, unitID)
+    if A.IsInPvP and (A.Zone == "pvp" or A.Zone == "arena") and not Player:IsStealthed() and not Player:IsMounted() then     
+		
+		--Add Silence on heal spell if team bursting
+		
+		--Disarm targets
+		if A.PsychicHorror:IsReady(unitID) then 
+			if Unit(unitID):HasBuffs(A.Bladestorm.ID or A.KillingSpree.ID) > 0 or (Unit(unitID):Class("Hunter") and Unit("party1" or "party2" or "party3"):HealthPercent() <= 50) then
+				return A.PsychicHorror:Show(icon)
+			end
+		end
+		
+		--Catch Rogues
+		if Unit(unitID):HasBuffs(A.CloakofShadows.ID) > 0 then
+			if A.Shadowfiend:IsReady(player) then
+				return A.Shadowfiend:Show(icon)
+			end
+		end
+		
+		--SWD on Poly
+		if A.ShadowWordDeath:IsReady(unitID) and Unit(unitID):IsCasting() == A.Polymorph.Info() and Unit(unitID):IsCastingRemains <= A.GetLatency() + 0.5 then
+			return A.ShadowWordDeath:Show(icon)
+		end	
+		
+	end
+end
+
+A[6] = function(icon)
+    local Party = PartyRotation("party1") 
+    if Party then 
+        return Party:Show(icon)
+    end 
+    
+    return ArenaRotation(icon, "arena1")
+end
+
+A[7] = function(icon)
+    local Party = PartyRotation("party2") 
+    if Party then 
+        return Party:Show(icon)
+    end 
+    
+    return ArenaRotation(icon, "arena2")
+end
+
+A[8] = function(icon)
+    local Party = PartyRotation("party3") 
+    if Party then 
+        return Party:Show(icon)
+    end 
+    
+    return ArenaRotation(icon, "arena3")
+end
