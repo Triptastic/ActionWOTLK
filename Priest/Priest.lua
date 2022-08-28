@@ -338,7 +338,9 @@ local function HealCalc(heal)
 	elseif heal == A.PrayerofHealing then
 		healamount = (A.PrayerofHealing:GetSpellDescription()[2]+(0.526*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)*(1+FocusedPowerMod)
 	elseif heal == A.Penance then
-		healamount = ((A.Penance:GetSpellDescription()[2]+(0.526*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)*(1+FocusedPowerMod))*2.5
+		healamount = ((A.Penance:GetSpellDescription()[2]+(0.526*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)*(1+FocusedPowerMod))*2
+	elseif heal == A.LesserHeal then
+		healamount = ((A.LesserHeal:GetSpellDescription()[2]+(0.123*bonusHeal))*(1+SpiritualHealingMod)*(1+EmpoweredHealingMod)*(1+FocusedPowerMod))
 	end
 
 	return healamount * globalhealmod
@@ -811,6 +813,7 @@ A[3] = function(icon, isMulti)
 		local BlanketRenew = A.GetToggle(2, "BlanketRenew")	
 		local RenewHP = A.GetToggle(2, "RenewHP")
 		local PenanceHP = A.GetToggle(2, "PenanceHP")		
+		local LesserHealHP = A.GetToggle(2, "LesserHealHP")		
 		
 		--[[if canCast and Player:IsStaying() and HealingEngine.GetBelowHealthPercentUnits(DivineHymnHP, 30) > DivineHymnTargets then
 			if A.InnerFocus:IsReady(player) then
@@ -979,7 +982,19 @@ A[3] = function(icon, isMulti)
 				end
 			end
 		end
-		
+
+		--LesserHeal
+		if A.LesserHeal:IsReady(unitID) and not isMoving and canCast then
+			if LesserHealHP >= 100 then
+				if Unit(unitID):HealthDeficit() >= HealCalc(A.LesserHeal) then
+					return A.LesserHeal:Show(icon)
+				end
+			elseif LesserHealHP <= 99 then
+				if Unit(unitID):HealthPercent() <= LesserHealHP then
+					return A.LesserHeal:Show(icon)
+				end
+			end
+		end		
 		
 	end
 
@@ -1041,6 +1056,7 @@ local function PartyRotation(icon, unitID)
 				return A.DivineHymn:Show(icon)
 			end
 		end
+	end
 		
 end
 
@@ -1064,7 +1080,7 @@ local function ArenaRotation(icon, unitID)
 		end
 		
 		--SWD on Poly
-		if A.ShadowWordDeath:IsReady(unitID) and Unit(unitID):IsCasting() == A.Polymorph.Info() and Unit(unitID):IsCastingRemains <= A.GetLatency() + 0.5 then
+		if A.ShadowWordDeath:IsReady(unitID) and Unit(unitID):IsCasting() == A.Polymorph.Info() and Unit(unitID):IsCastingRemains() <= A.GetLatency() + 0.5 then
 			return A.ShadowWordDeath:Show(icon)
 		end	
 		

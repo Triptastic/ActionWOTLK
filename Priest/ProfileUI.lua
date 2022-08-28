@@ -384,6 +384,21 @@ A.Data.ProfileUI = {
                 },
 			},	
 			{
+                { -- LesserHeal
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "LesserHealHP",
+                    DBV = 100,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Lesser Heal HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Lesser Heal.", 
+                    },                     
+                    M = {},
+                },			
                 { -- PenanceHP
                     E = "Slider",                                                     
                     MIN = 0, 
@@ -402,7 +417,7 @@ A.Data.ProfileUI = {
 				{ -- BlanketPWS
                     E = "Checkbox", 
                     DB = "BlanketPWS",
-                    DBV = true,
+                    DBV = false,
                     L = { 
                         ANY = "Blanket Power Word: Shield",
                     }, 

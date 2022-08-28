@@ -233,7 +233,7 @@ local function EnvenomCalc()
 
 	local base, posBuff, negBuff = UnitAttackPower(player)
 	local effective = base + posBuff + negBuff
-	local ComboPoints = Player:ComboPoints()
+	local ComboPoints = Player:ComboPoints() or 0
 	
 	return A.Envenom:GetSpellDescription()[2]*ComboPoints+effective*(0.09*ComboPoints)
 
@@ -338,11 +338,6 @@ A[3] = function(icon, isMulti)
 	if A.EscapeArtist:AutoRacial() then 
 		return A.EscapeArtist:Show(icon)
 	end 	  
-
-	local MageArmorBuff = ArmorChoice()
-	if MageArmorBuff then
-		return MageArmorBuff:Show(icon)
-	end
  
     ------------------------------------------------------
     ---------------- ENEMY UNIT ROTATION -----------------
@@ -431,11 +426,11 @@ A[3] = function(icon, isMulti)
 					return A.TricksoftheTrade:Show(icon)
 				end
 
-				if A.ExposeArmor:IsReady(unitID) and (Unit(unitID):HasDeBuffs(A.ExposeArmor.ID and A.SunderArmor.ID) <= 1.5 or (Unit(unitID):HasDeBuffs(A.ExposeArmor.ID) < 5 and Unit(unitID):HasDeBuffs(A.SunderArmor.ID) == 0 and ComboPoints >= 4) then
+				if A.ExposeArmor:IsReady(unitID) and (Unit(unitID):HasDeBuffs(A.ExposeArmor.ID and A.SunderArmor.ID) <= 1.5 or (Unit(unitID):HasDeBuffs(A.ExposeArmor.ID) < 5 and Unit(unitID):HasDeBuffs(A.SunderArmor.ID) == 0 and ComboPoints >= 4)) then
 					return A.ExposeArmor:Show(icon)
 				end	
 
-				if A.Envenom:IsReady(unitID) Unit(player):HasBuffs(A.Envenom.ID, true) == 0 and A.MasterPoisoner:IsTalentLearned() and ((Unit(player):HasBuffs(A.SliceandDice.ID and A.HungerForBlood.ID, true) > 0 and ComboPoints >= 4) or Unit(unitID):Health() <= EnvenomCalc) then
+				if A.Envenom:IsReady(unitID) and Unit(player):HasBuffs(A.Envenom.ID, true) == 0 and A.MasterPoisoner:IsTalentLearned() and ((Unit(player):HasBuffs(A.SliceandDice.ID and A.HungerForBlood.ID, true) > 0 and ComboPoints >= 4) or Unit(unitID):Health() <= EnvenomCalc) then
 					return A.Envenom:Show(icon)
 				end
 
@@ -447,8 +442,8 @@ A[3] = function(icon, isMulti)
 					return A.SliceandDice:Show(icon)
 				end
 
-				if A.Eviscerate:IsReady(unitID) and BFAoE and Unit(player):HasBuffs(A.BladeFlurry.ID, true) > 0 and (ComboPoints >= 4 or Unit(unitID):Health() < EviscerateCalc) then
-						return A.Eviscerate:Show(icon)
+				if A.Eviscerate:IsReady(unitID) and ((BFAoE and Unit(player):HasBuffs(A.BladeFlurry.ID, true) > 0) or Unit(unitID):Health() < EviscerateCalc) and (ComboPoints >= 4 or Unit(unitID):Health() < EviscerateCalc) then
+					return A.Eviscerate:Show(icon)
 				end
 				
 				if A.Rupture:IsReady(unitID) and ((A.HungerForBlood:IsTalentLearned() and Unit(player):HasBuffs(A.HungerForBlood.ID, true) == 0) or (not A.HungerForBlood:IsTalentLearned() and (Unit(unitID):HasDeBuffs(A.Rupture.ID, true) == 0 or ComboPoints >= 4 and Unit(unitID):HasDeBuffs(A.Rupture.ID, true) < 3))) then
@@ -471,7 +466,7 @@ A[3] = function(icon, isMulti)
 					return A.Eviscerate:Show(icon)
 				end
 		
-				if A.GhostlyStrike:IsReady(unitID then
+				if A.GhostlyStrike:IsReady(unitID) then
 					return A.GhostlyStrike:Show(icon)
 				end
 		
@@ -483,7 +478,7 @@ A[3] = function(icon, isMulti)
 					return A.Mutilate:Show(icon)
 				end
 				
-				if A.Backstab:IsReady(unitID and Player:IsBehind(2) then
+				if A.Backstab:IsReady(unitID) and Player:IsBehind(2) then
 					return A.Backstab:Show(icon)
 				end
 				
