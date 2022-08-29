@@ -8,3 +8,5 @@ Donations are welcome but not necessary.
 Paypal: triprotations@gmail.com
 
 BTC: bc1qtvpkg4zlt6y6x7xg4vafxcmmvarutajvvudd4r
+
+Ko-fi: https://ko-fi.com/triprotations
