@@ -1022,38 +1022,38 @@ local function PartyRotation(icon, unitID)
     if A.IsInPvP and (A.Zone == "pvp" or A.Zone == "arena") and not Player:IsStealthed() and not Player:IsMounted() then 
 
 		if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(unitID):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
-			return A.PowerWordShield:Show(icon)
+			return A.PowerWordShield
 		end
 		
 		if A.DispelMagic:IsReady(unitID, true) then 
 			if (AuraIsValid(unitID, "UseDispel", "Magic") or AuraIsValid(unitID, "UsePurge", "PurgeFriendly")) then 
-				return A.DispelMagic:Show(icon)
+				return A.DispelMagic
 			end 
 		else 
 			if (AuraIsValid(unitID, "UsePurge", "PurgeHigh") or AuraIsValid(unitID, "UsePurge", "PurgeLow")) then 
-				return A.DispelMagic:Show(icon)
+				return A.DispelMagic
 			end 
 		end 		
 		if A.AbolishDisease:IsReady(unitID, true) then
 			if AuraIsValid(unitID, "UseDispel", "Disease") then
-				return A.AbolishDisease:Show(icon)
+				return A.AbolishDisease
 			end
 		end
 		
 		if A.Renew:IsReady(unitID) and Unit(unitID):HealthPercent() <= 85 and Unit(unitID):HasBuffs(A.Renew.ID) == 0 then
-			return A.Renew:Show(icon)
+			return A.Renew
 		end
 		
 		if A.PrayerofMending:IsReady(unitID) and HealingEngine.GetBuffsCount(A.PrayerofMending.ID, 0, player) == 0 then
-			return A.PrayerofMending:Show(icon)
+			return A.PrayerofMending
 		end
 		
 		if A.DivineHymn:IsReady(player) then
 			if Unit("party1" and "party2" and "party3"):HealthPercent() <= 60 then  -- check enemy interrupt CD list
 				if A.InnerFocus:IsReady(unitID) then
-					return A.InnerFocus:Show(icon)
+					return A.InnerFocus
 				end
-				return A.DivineHymn:Show(icon)
+				return A.DivineHymn
 			end
 		end
 	end

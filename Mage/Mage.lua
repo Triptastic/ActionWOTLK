@@ -166,6 +166,9 @@ Action[Action.PlayerClass]                     = {
 	BrainFreeze					= Create({ Type = "Spell", ID = 57761, useMaxRank = true, Hidden = true       }),	
 	FingersofFrost				= Create({ Type = "Spell", ID = 74396, useMaxRank = true, Hidden = true       }),
 	WintersChill				= Create({ Type = "Spell", ID = 74396, useMaxRank = true, Hidden = true       }),	
+	
+	--PVP
+	CatForm										= Create({ Type = "Spell", ID = 768, Hidden = true         }),	
 
     --Misc
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
@@ -263,18 +266,20 @@ local function ArmorChoice()
 	local MoltenArmorRefresh = (not inCombat and Unit(player):HasBuffs(A.MoltenArmor.ID) >= 0 and Unit(player):HasBuffs(A.MoltenArmor.ID) <= 300) or Unit(player):HasBuffs(A.MoltenArmor.ID) == 0	
 	local FrostArmorRefresh = (not inCombat and Unit(player):HasBuffs(A.FrostArmor.ID) >= 0 and Unit(player):HasBuffs(A.FrostArmor.ID) <= 300) or Unit(player):HasBuffs(A.FrostArmor.ID) == 0	
 	local ArmorSelect = A.GetToggle(2, "ArmorSelect")
-	
-	if ArmorSelect == "MageArmor" then
-		if A.MageArmor:IsReady(player) and MageArmorRefresh then
-			return A.MageArmor
-		end
-	elseif ArmorSelect == "MoltenArmor" then
-		if A.MoltenArmor:IsReady(player) and MoltenArmorRefresh then
-			return A.MoltenArmor
-		end
-	elseif ArmorSelect == "FrostArmor" and FrostArmorRefresh then
-		if A.FrostArmor:IsReady(player) then
-			return A.FrostArmor
+
+	if not A.IsInPvP then	
+		if ArmorSelect == "MageArmor" then
+			if A.MageArmor:IsReady(player) and MageArmorRefresh then
+				return A.MageArmor
+			end
+		elseif ArmorSelect == "MoltenArmor" then
+			if A.MoltenArmor:IsReady(player) and MoltenArmorRefresh then
+				return A.MoltenArmor
+			end
+		elseif ArmorSelect == "FrostArmor" and FrostArmorRefresh then
+			if A.FrostArmor:IsReady(player) then
+				return A.FrostArmor
+			end
 		end
 	end
 end
@@ -411,6 +416,21 @@ A[3] = function(icon, isMulti)
 		local DoInterrupt = Interrupts(unitID)
 		if DoInterrupt then 
 			return DoInterrupt:Show(icon)
+		end
+
+		if A.IsInPvP then
+			if A.FrostArmor:IsReady(player) and Unit(player):HasBuffs(A.FrostArmor.ID) == 0 and Unit(unitID):Class() == "Warrior" or Unit(unitID):Class() == "Rogue" or Unit(unitID):Class() == "Death Knight" or Unit(unitID):Class() == "Paladin" or Unit(unitID):HasBuffs(A.CatForm.ID) > 0 then
+				return A.FrostArmor:Show(icon)
+			end
+			
+			if A.FrostNova:IsReady(player) and MultiUnits:GetByRange(10, 3) >= 1 then
+				return A.FrostNova:Show(icon)
+			end
+			
+			if A.FireWard:IsReady(player) and (Unit("arena1" or "arena2" or "arena3"):IsCasting() == A.LavaBurst:Info() or Unit("arena1" or "arena2" or "arena3"):HasBuffs(A.HotStreak.ID) > 0) then
+				return A.FireWard:Show(icon)
+			end
+			
 		end
 
 		local EvocationMana = A.GetToggle(2, "EvocationMana")
@@ -556,8 +576,39 @@ A[4] = nil
 
 A[5] = nil
 
-A[6] = nil
+local function ArenaRotation(icon, unitID)
+    if A.IsInPvP and (A.Zone == "pvp" or A.Zone == "arena") and not Player:IsStealthed() and not Player:IsMounted() then     
+		
+		--Add kick on heal spell if team bursting
+		local useKick, useCC, useRacial, notInterruptable, castRemainsTime = A.InterruptIsValid(unitID, "PvP", nil, true)   
+		if useKick and A.Counterspell:IsReady(unitID) and not notInterruptable then
+			return A.Counterspell:Show(icon)
+		end
 
-A[7] = nil
+		--Spellsteal
+		if A.Spellsteal:IsReady(unitID, true) then 
+			if AuraIsValid(unitID, "UseDispel", "PurgeHigh") then 
+				return A.Spellsteal:Show(icon)
+			end 
+		end 
+		
+	end
+end
 
-A[8] = nil
+A[6] = function(icon)
+
+    
+    return ArenaRotation(icon, "arena1")
+end
+
+A[7] = function(icon)
+
+    
+    return ArenaRotation(icon, "arena2")
+end
+
+A[8] = function(icon)
+
+    
+    return ArenaRotation(icon, "arena3")
+end
