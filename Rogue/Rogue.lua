@@ -118,6 +118,7 @@ Action[Action.PlayerClass]                     = {
 	GhostlyStrike								= Create({ Type = "Spell", ID = 14278, useMaxRank = true        }),
 	Hemorrhage									= Create({ Type = "Spell", ID = 16511, useMaxRank = true        }),	
 	HungerForBlood								= Create({ Type = "Spell", ID = 51662, useMaxRank = true        }),	
+	KillingSpree								= Create({ Type = "Spell", ID = 51690, useMaxRank = true        }),		
 	Mutilate									= Create({ Type = "Spell", ID = 1329, useMaxRank = true        }),	
 	Premeditation								= Create({ Type = "Spell", ID = 14183, useMaxRank = true        }),	
 	Preparation									= Create({ Type = "Spell", ID = 14185, useMaxRank = true        }),
@@ -145,7 +146,9 @@ Action[Action.PlayerClass]                     = {
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
     Bloodlust									= Create({ Type = "Spell", ID = 2825        }),
     Drums										= Create({ Type = "Spell", ID = 29529        }),
-    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),  
+    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),
+    SunderArmor									= Create({ Type = "Spell", ID = 7386        }),
+    PoolResource								= Create({ Type = "Spell", ID = 13980        }),	
 }
 
 local A                                     = setmetatable(Action[Action.PlayerClass], { __index = Action })
@@ -361,7 +364,7 @@ A[3] = function(icon, isMulti)
 				return A.AdrenalineRush:Show(icon)
 			end
 			
-			if A.KillingSpree:IsReady(unitID) and not BFAoE then
+			if A.KillingSpree:IsReady(player) and Unit(player):HasBuffs(A.BladeFlurry.ID) == 0 and InRange() then
 				return A.KillingSpree:Show(icon)
 			end
 			
@@ -392,6 +395,10 @@ A[3] = function(icon, isMulti)
 			return A.Sap:Show(icon)
 		end
 
+		if A.Premeditation:IsReady(unitID) then
+			return A.Premeditation:Show(icon)
+		end
+
 		if Unit(unitID):HasDeBuffs(A.Sap.ID) == 0 then
 		
 			if Unit(player):HasBuffs(A.Stealth.ID) > 0 then
@@ -418,7 +425,7 @@ A[3] = function(icon, isMulti)
 					return A.FanofKnives:Show(icon)
 				end
 
-				if A.BladeFlurry:IsReady(player) and BFAoE and not FoKAoE then
+				if A.BladeFlurry:IsReady(player) and BFAoE and (not FoKAoE and A.FanofKnives:IsTalentLearned() or not A.FanofKnives:IsTalentLearned()) then
 					return A.BladeFlurry:Show(icon)
 				end
 
@@ -426,7 +433,7 @@ A[3] = function(icon, isMulti)
 					return A.TricksoftheTrade:Show(icon)
 				end
 
-				if A.ExposeArmor:IsReady(unitID) and (Unit(unitID):HasDeBuffs(A.ExposeArmor.ID and A.SunderArmor.ID) <= 1.5 or (Unit(unitID):HasDeBuffs(A.ExposeArmor.ID) < 5 and Unit(unitID):HasDeBuffs(A.SunderArmor.ID) == 0 and ComboPoints >= 4)) then
+				if A.ExposeArmor:IsReady(unitID) and ((Unit(unitID):HasDeBuffs(A.ExposeArmor.ID) == 0 and Unit(unitID):HasDeBuffs(A.SunderArmor.ID) == 0) or (Unit(unitID):HasDeBuffs(A.ExposeArmor.ID) < 4 and Unit(unitID):HasDeBuffs(A.SunderArmor.ID) == 0 and ComboPoints >= 4)) then
 					return A.ExposeArmor:Show(icon)
 				end	
 
@@ -434,7 +441,7 @@ A[3] = function(icon, isMulti)
 					return A.Envenom:Show(icon)
 				end
 
-				if A.HungerForBlood:IsReady(player) and Unit(player):HasBuffs(A.SliceandDice.ID, true) >  3 then
+				if A.HungerForBlood:IsReady(player) and Unit(player):HasBuffs(A.SliceandDice.ID, true) >  3 and Unit(player):HasBuffs(A.HungerForBlood.ID) <= A.GetGCD() then
 					return A.HungerForBlood:Show(icon)
 				end
 
@@ -446,8 +453,10 @@ A[3] = function(icon, isMulti)
 					return A.Eviscerate:Show(icon)
 				end
 				
-				if A.Rupture:IsReady(unitID) and ((A.HungerForBlood:IsTalentLearned() and Unit(player):HasBuffs(A.HungerForBlood.ID, true) == 0) or (not A.HungerForBlood:IsTalentLearned() and (Unit(unitID):HasDeBuffs(A.Rupture.ID, true) == 0 or ComboPoints >= 4 and Unit(unitID):HasDeBuffs(A.Rupture.ID, true) < 3))) then
-					return A.Rupture:Show(icon)
+				if A.Rupture:IsReady(unitID) and ((A.HungerForBlood:IsTalentLearned() and Unit(player):HasBuffs(A.HungerForBlood.ID, true) <= A.GetGCD()) or (not A.HungerForBlood:IsTalentLearned() and (Unit(unitID):HasDeBuffs(A.Rupture.ID, true) == 0 or ComboPoints >= 4 and Unit(unitID):HasDeBuffs(A.Rupture.ID, true) < 3))) then
+					if not BFAoE and Unit(player):HasBuffs(A.BladeFlurry.ID) == 0 then
+						return A.Rupture:Show(icon)
+					end
 				end	
 		
 				if A.Ambush:IsReady(unitID) and Player:IsBehind() and Unit(player):HasBuffs(A.ShadowDance.ID, true) > 0 and ComboPoints < 5 then
@@ -458,7 +467,7 @@ A[3] = function(icon, isMulti)
 					return A.PoolResource:Show(icon)
 				end
 				
-				if A.ShadowDance:IsReady(player) then
+				if A.ShadowDance:IsReady(player) and InRange() then
 					return A.ShadowDance:Show(icon)
 				end
 		
@@ -482,7 +491,7 @@ A[3] = function(icon, isMulti)
 					return A.Backstab:Show(icon)
 				end
 				
-				if A.SinisterStrike:IsReady(unitID) then
+				if A.SinisterStrike:IsReady(unitID) and not A.Mutilate:IsTalentLearned() then
 					return A.SinisterStrike:Show(icon)
 				end
 			end

@@ -1,6 +1,6 @@
---##########################
---##### TRIP'S ROGUE UI #####
---##########################
+--#############################
+--##### TRIP'S PALADIN UI #####
+--#############################
 
 local TMW											= TMW 
 local CNDT											= TMW.CNDT
@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.00 (27 August 2022)",
+    DateTime = "v1.00 (23 August 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -51,38 +51,23 @@ A.Data.ProfileUI = {
                         frFR = "Activer les actions multi-unités",
                     }, 
                     M = {},
-                },
-                { -- FoKEnemies
-                    E = "Slider",                                                     
-                    MIN = 0, 
-                    MAX = 10,                            
-                    DB = "FoKEnemies",
-                    DBV = 4,
-                    ONOFF = true,
-                    L = { 
-                        ANY = "Fan of Knives Targets",
-                    },
-                    TT = { 
-                        ANY = "Enemies to use Fan of Knives", 
-                    },                     
-                    M = {},
                 },	
-                { -- Blade Flurry
+                { -- HealthStone
                     E = "Slider",                                                     
                     MIN = 0, 
                     MAX = 10,                            
-                    DB = "BFEnemies",
-                    DBV = 2,
-                    ONOFF = true,
+                    DB = "AoEEnemies",
+                    DBV = 3,
+                    ONOFF = false,
                     L = { 
-                        ANY = "Blade Flurry Targets",
+                        ANY = "Enemies for AoE",
                     },
                     TT = { 
-                        ANY = "Enemies to use Blade Flurry", 
+                        ANY = "Amount of enemies nearby to start AoE rotation.", 
                     },                     
                     M = {},
                 },				
-			},
+            },
 			{
 				{ -- RECOVERY POTION CONTROLLER
                     E = "Dropdown",                                                         
@@ -119,51 +104,88 @@ A.Data.ProfileUI = {
                     },                     
                     M = {},
                 },							
-			},						
-			{
-                { -- EvasionHP
+                { -- DivineProtectionHP
                     E = "Slider",                                                     
                     MIN = 0, 
                     MAX = 100,                            
-                    DB = "EvasionHP",
-                    DBV = 30,
+                    DB = "DivineProtectionHP",
+                    DBV = 35,
                     ONOFF = true,
                     L = { 
-                        ANY = "Evasion HP (%)",
+                        ANY = "Divine Protection HP (%)",
                     },
                     TT = { 
-                        ANY = "HP (%) to use Evasion.", 
+                        ANY = "HP (%) to use Divine Protection.", 
+                    },                     
+                    M = {},
+                },
+                { -- DivineShieldHP
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "DivineShieldHP",
+                    DBV = 20,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Divine Shield HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Divine Shield.", 
                     },                     
                     M = {},
                 },				
 			},
-            { -- MAGE HEADER
+			{
+                { -- ShadowfiendMana
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "ShadowfiendMana",
+                    DBV = 60,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Mana (%) for Shadowfiend.",
+                    },
+                    TT = { 
+                        ANY = "Mana (%) to use Shadowfiend.", 
+                    },                     
+                    M = {},
+                },							
+			},				
+            { -- PRIEST HEADER
                 {
                     E = "Header",
                     L = {
-                        ANY = " ====== ROGUE ====== ",
+                        ANY = " ====== PALADIN ====== ",
                     },
                 },
-            },
+            },			
 			{
-				{ -- StealthOpener
+				{ -- RECOVERY POTION CONTROLLER
                     E = "Dropdown",                                                         
                     OT = {
-						{ text = "Garrote", value = "openGarrote" },
-						{ text = "Cheap Shot", value = "openCheapShot" },
-						{ text = "Ambush", value = "openAmbush" },		
-						{ text = "Manual", value = "openManual" },							
+						{ text = "Seal of Light", value = "Light" },
+						{ text = "Seal of Righteousness", value = "Righteousness" },
+						{ text = "Seal of Wisdom", value = "Wisdom" },
+						{ text = "Seal of Justice", value = "Justice" },
+						{ text = "Seal of Command", value = "Command" },							
+						{ text = "Seal of Vengeance/Corruption", value = "Vengeance" },		
                     },
-                    DB = "openStealth",
-                    DBV = "openManual",
+                    DB = "SealChoice",
+                    DBV = "Vengeance",
                     L = { 
-                        ANY = "Stealth Opener",
+                        ANY = "Seal Usage",
                     }, 
                     TT = { 
-                        ANY = "Choose the ability to use from Stealth. Manual will not use anything.", 
+                        ANY = "Pick what Seal you would like to use.", 
                     }, 
                     M = {},
+                },						
+			},
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
                 },
-			},			
+            },		
 		},
 }
