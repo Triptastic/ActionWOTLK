@@ -660,8 +660,13 @@ A[3] = function(icon, isMulti)
 		return A.InnerFire:Show(icon)
 	end		
 	
-	if A.PowerWordFortitude:IsReady(unitID) and Unit(player):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID, true) == 0 and (unitID == player or unitID == nil) then
-		return A.PowerWordFortitude:Show(icon)
+	if A.PowerWordFortitude:IsReady(unitID) then
+		if Unit(player):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID, true) == 0 and (unitID == player or unitID == nil) then
+			return A.PowerWordFortitude:Show(icon)
+		end
+		--[[if Unit(unitID):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID, true) == 0 and Unit(unitID):IsInParty() then
+			return A.PowerWordFortitude:Show(icon)
+		end	]]	
 	end	
 
 	
@@ -1001,14 +1006,25 @@ A[3] = function(icon, isMulti)
 ---------------------------------------------------------------------------------------------------
 	local HealingStyle = A.GetToggle(2, "HealingStyle")
 	
-	if A.IsUnitFriendly("focus") and HealingStyle == "Focus" and Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 then
-		return HealingRotation("focus")
-    elseif A.IsUnitFriendly("target") and HealingStyle == "Target" and Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 then
-        return HealingRotation("target")
-	elseif A.IsUnitEnemy("target") then 
-        return EnemyRotation("target")
-    end 
-        
+	if A.IsUnitFriendly(focus) then 
+		unitID = focus 
+		if HealingRotation(unitID) then 
+			return true 
+		end 
+	end
+	if A.IsUnitFriendly(target) then 
+		unitID = target 
+		if HealingRotation(unitID) then 
+			return true 
+		end 
+	end      
+	if A.IsUnitEnemy(target) then 
+		unitID = target 
+		if EnemyRotation(unitID) then 
+			return true 
+		end 
+	end
+	   
 end
 
 A[1] = nil
