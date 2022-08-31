@@ -210,7 +210,7 @@ A.Data.ProfileUI = {
                         ANY = "Healing Rotation Style: Target or Focus",
                     }, 
                     TT = { 
-                        ANY = "Pick how you would like to use the healing rotation style, whether you want to automatically change your target or automatically change your focus. If you set this to focus, it is important that you change all of your heal abilities to '/cast [@focus] SpellName'. You must also change all of your Target Member macros to /focus instead of /target.", 
+                        ANY = "Pick how you would like to use the healing rotation style, whether you want to automatically change your target or automatically change your focus. If you set this to focus, it is important that you change all of your heal abilities to '/cast [@focus] SpellName'. You must also change all of your Target Member macros to /focus instead of /target. You may need an updated HealingEngine.lua from Trip to get this to work (message in Discord).", 
                     }, 
                     M = {},
                 },

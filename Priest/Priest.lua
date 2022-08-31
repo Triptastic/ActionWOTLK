@@ -660,13 +660,11 @@ A[3] = function(icon, isMulti)
 		return A.InnerFire:Show(icon)
 	end		
 	
-	if A.PowerWordFortitude:IsReady(unitID) then
-		if Unit(player):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID, true) == 0 and (unitID == player or unitID == nil) then
-			return A.PowerWordFortitude:Show(icon)
-		end
-		--[[if Unit(unitID):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID, true) == 0 and Unit(unitID):IsInParty() then
-			return A.PowerWordFortitude:Show(icon)
-		end	]]	
+	if A.PowerWordFortitude:IsReady(player) and Unit(player):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID, true) == 0 and (unitID == player or unitID == nil) then
+		return A.PowerWordFortitude:Show(icon)
+	end
+	if A.PowerWordFortitude:IsReady(target) and Unit(target):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID, true) == 0 and not inCombat and not Unit(target):IsNPC() then
+		return A.PowerWordFortitude:Show(icon)
 	end	
 
 	
