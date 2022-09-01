@@ -254,12 +254,12 @@ InRange = A.MakeFunctionCachedDynamic(InRange)
 local function Interrupts(unitID)
     local useKick, useCC, useRacial, notInterruptable, castRemainsTime = A.InterruptIsValid(unitID, nil, nil, true)   
     if (useKick or useCC) and castRemainsTime >= GetLatency() then
-		if useCC and A.PsychicScream:IsReady(player) then
-			return A.PsychicScream
-		end
-		
 		if useKick and A.Silence:IsReady(unitID) and not notInterruptable then
 			return A.Silence
+		end
+
+		if useCC and A.PsychicScream:IsReady(player) and Unit(unitID):GetRange() <= 7 then
+			return A.PsychicScream
 		end
 	end
 end 
@@ -765,7 +765,7 @@ A[3] = function(icon, isMulti)
 			end
 			
 			if A.DevouringPlague:IsReady(unitID) and DevouringPlagueRefresh then
-				return A.HolyNova:Show(icon)
+				return A.ShadowWeaving:Show(icon)
 			end
 			
 			if A.MindBlast:IsReady(unitID) and not isMoving then
@@ -792,7 +792,7 @@ A[3] = function(icon, isMulti)
 			
 			local DPMoving = A.GetToggle(2, "DPMoving")		
 			if A.DevouringPlague:IsReady(unitID) and DPMoving then
-				return A.DevouringPlague:Show(icon)
+				return A.ShadowWeaving:Show(icon)
 			end		
 		end
 	end
@@ -898,14 +898,14 @@ A[3] = function(icon, isMulti)
 		end
 	
 		--Cleansing
-		if A.AbolishDisease:IsReady(unitID) and Cleanse then
+		if (A.AbolishDisease:IsReady(unitID) or A.CureDisease:IsReady(unitID)) and Cleanse then
 			for i = 1, #getmembersAll do 
-				if Unit(getmembersAll[i].Unit):GetRange() <= 40 and not Unit(getmembersAll[i].Unit):IsDead() and AuraIsValid(getmembersAll[i].Unit, "UseDispel", "Poison") and Unit(getmembersAll[i].Unit):HasBuffs(A.AbolishDisease.ID) == 0 then
+				if Unit(getmembersAll[i].Unit):GetRange() <= 40 and not Unit(getmembersAll[i].Unit):IsDead() and AuraIsValid(getmembersAll[i].Unit, "UseDispel", "Disease") and Unit(getmembersAll[i].Unit):HasBuffs(A.AbolishDisease.ID) == 0 then
 					HealingEngine.SetTarget(getmembersAll[i].Unit, 0.3)   
 					return A.AbolishDisease:Show(icon)
 				end                
 			end
-		end
+		end	
 
 		--GreaterHeal
 		if A.GreaterHeal:IsReady(unitID) and not isMoving and canCast and (Unit(player):HasBuffsStacks(A.SerendipityBuff.ID, true) >= 3 or not A.SerendipityTalent:IsTalentLearned()) then
@@ -966,7 +966,7 @@ A[3] = function(icon, isMulti)
 
 		--Renew + blanket option
 		if A.Renew:IsReady(unitID) and canCast and inCombat then
-			if Unit(unitID):IsTank() and Unit(unitID):HasBuffs(A.Renew.ID, true) == 0 then
+			if Unit(unitID):IsTanking() and Unit(unitID):HasBuffs(A.Renew.ID, true) == 0 then
 				return A.Renew:Show(icon)
 			end
 			if BlanketRenew then
@@ -1043,11 +1043,7 @@ local function PartyRotation(icon, unitID)
 			if (AuraIsValid(unitID, "UseDispel", "Magic") or AuraIsValid(unitID, "UsePurge", "PurgeFriendly")) then 
 				return A.DispelMagic
 			end 
-		else 
-			if (AuraIsValid(unitID, "UsePurge", "PurgeHigh") or AuraIsValid(unitID, "UsePurge", "PurgeLow")) then 
-				return A.DispelMagic
-			end 
-		end 		
+		end
 		if A.AbolishDisease:IsReady(unitID, true) then
 			if AuraIsValid(unitID, "UseDispel", "Disease") then
 				return A.AbolishDisease

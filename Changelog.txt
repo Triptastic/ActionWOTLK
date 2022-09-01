@@ -3,3 +3,9 @@ Changelog
 01 Sept 2022
 Priest:
 Fixed targeting issues for heal/DPS.
+Fixed range check on Psychic Scream.
+Cleanse fix.
+Fixed Devouring Plague showing incorrect icon (icon changed from Classic).
+
+Mage:
+Fixed level 1 spell usage.

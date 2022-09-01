@@ -552,6 +552,10 @@ A[3] = function(icon, isMulti)
 		if A.Frostbolt:IsReady(unitID) and not isMoving then
 			return A.Frostbolt:Show(icon)
 		end
+
+		if A.Fireball:IsReady(unitID) and not isMoving then
+			return A.Fireball:Show(icon)
+		end		
 		
 		if A.FireBlast:IsReady(unitID) then
 			return A.FireBlast:Show(icon)
