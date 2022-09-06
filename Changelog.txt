@@ -1,5 +1,24 @@
 Changelog
 
+05 Sept 2022
+Mage:
+Fixed Mana Gem icon.
+Fixed Ice Armor/Frost Armor checks.
+Added Ice Barrier usage.
+Changed Fire/Frost Ward checks. 
+Started PvP checks -- thanks Hewgo!
+Added Cold Snap for Ice Block
+
+Priest:
+Fix Shadow Weaving talent check for lower levels.
+Fixed stopcast check for Vampiric Touch when Vampiric Touch isn't learned.
+Added Holy Fire when outside of Shadowform.
+Added Divine Spirit checks. 
+
+
+
+
+
 01 Sept 2022
 Priest:
 Fixed targeting issues for heal/DPS.
