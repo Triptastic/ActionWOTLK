@@ -660,12 +660,16 @@ A[3] = function(icon, isMulti)
 		return A.InnerFire:Show(icon)
 	end		
 	
-	if A.PowerWordFortitude:IsReady(player) and Unit(player):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID, true) == 0 and (unitID == player or unitID == nil) then
+	if A.PowerWordFortitude:IsReady(player) and Unit(player):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID) == 0 and (unitID == player or unitID == nil) then
 		return A.PowerWordFortitude:Show(icon)
 	end
-	if A.PowerWordFortitude:IsReady(target) and Unit(target):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID, true) == 0 and not inCombat and not Unit(target):IsNPC() then
+	if A.PowerWordFortitude:IsReady(target) and Unit(target):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID) == 0 and not inCombat and not Unit(target):IsNPC() then
 		return A.PowerWordFortitude:Show(icon)
 	end	
+
+	if A.DivineSpirit:IsReady(target) and Unit(target):HasBuffs(A.DivineSpirit.ID) == 0 and not inCombat and not Unit(target):IsNPC() then
+		return A.DivineSpirit:Show(icon)
+	end		
 
 	
  ------------------------------------------------------------------------------------------------
@@ -676,7 +680,7 @@ A[3] = function(icon, isMulti)
 		local SpecSelect = A.GetToggle(2, "SpecSelect")
     
 		local SWPActive = Unit(unitID):HasDeBuffs(A.ShadowWordPain.ID, true) > 0
-		local VampiricTouchActive = Unit(unitID):HasDeBuffs(A.VampiricTouch.ID, true) > A.VampiricTouch:GetSpellCastTime()
+		local VampiricTouchActive = A.VampiricTouch:IsTalentLearned() and Unit(unitID):HasDeBuffs(A.VampiricTouch.ID, true) > A.VampiricTouch:GetSpellCastTime()
 		local DevouringPlagueRefresh = Player:GetDeBuffsUnitCount(A.DevouringPlague.ID, true) < 1 
 		local DoTMissing = not SWPActive or not VampiricTouchActive or DevouringPlagueRefresh
 
@@ -755,8 +759,12 @@ A[3] = function(icon, isMulti)
 				return A.ShadowWordDeath:Show(icon)
 			end
 			
+			if A.HolyFire:IsReady(unitID) and not isMoving and Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
+				return A.HolyFire:Show(icon)
+			end
+			
 			--SWP only with Shadow Weavingx5
-			if A.ShadowWordPain:IsReady(unitID) and not SWPActive and (Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 or not A.ShadowWeaving:IsTalentLearned()) then
+			if A.ShadowWordPain:IsReady(unitID) and not SWPActive and ((Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 and A.VampiricTouch:IsTalentLearned()) or not A.VampiricTouch:IsTalentLearned()) then
 				return A.ShadowWordPain:Show(icon)
 			end
 			
