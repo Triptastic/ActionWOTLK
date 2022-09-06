@@ -171,7 +171,8 @@ Action[Action.PlayerClass]                     = {
 	CatForm										= Create({ Type = "Spell", ID = 768, Hidden = true         }),	
 
     --Misc
-    Heroism										= Create({ Type = "Spell", ID = 32182        }),
+    Hypothermia								= Create({ Type = "Spell", ID = 41425        }),
+	Heroism										= Create({ Type = "Spell", ID = 32182        }),
     Bloodlust									= Create({ Type = "Spell", ID = 2825        }),
     Drums										= Create({ Type = "Spell", ID = 29529        }),
     SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),  
@@ -238,6 +239,41 @@ local ImmuneArcane = {
     [20478] = true, -- Arcane Servant
 }    
 
+local BlockSpellFireWard = {
+	51505, -- Lava Burst
+	133, -- Fireball
+	2948, -- Scorch
+	33938, -- Pyroblast
+	29722, -- Incinerate
+
+}
+
+local BlockSpellFrostWard = {
+	44614, -- FrostFire Bolt
+	116, -- FrostBolt	
+
+}
+
+local function BlockDebuffFireWard()
+
+	return Unit(player):HasDeBuffs({
+	44457, -- Living Bomb
+	348, -- Immolate
+	
+	
+	}) > 0
+end
+
+local function BlockDebuffFrostWard()
+	
+	return Unit(player):HasDeBuffs({
+	45477, -- Icy Touch
+	55095, -- Frost Fever
+
+
+	}) > 0
+end
+
 local function InRange(unitID)
     -- @return boolean 
     return A.Frostbolt:IsInRange(unitID)
@@ -264,7 +300,8 @@ local function ArmorChoice()
     local inCombat = Unit(player):CombatTime() > 0
 	local MageArmorRefresh = (not inCombat and Unit(player):HasBuffs(A.MageArmor.ID) >= 0 and Unit(player):HasBuffs(A.MageArmor.ID) <= 300) or Unit(player):HasBuffs(A.MageArmor.ID) == 0
 	local MoltenArmorRefresh = (not inCombat and Unit(player):HasBuffs(A.MoltenArmor.ID) >= 0 and Unit(player):HasBuffs(A.MoltenArmor.ID) <= 300) or Unit(player):HasBuffs(A.MoltenArmor.ID) == 0	
-	local FrostArmorRefresh = (not inCombat and Unit(player):HasBuffs(A.FrostArmor.ID) >= 0 and Unit(player):HasBuffs(A.FrostArmor.ID) <= 300) or Unit(player):HasBuffs(A.FrostArmor.ID) == 0	
+	local FrostArmorRefresh = (not inCombat and Unit(player):HasBuffs(A.FrostArmor.ID) >= 0 and Unit(player):HasBuffs(A.FrostArmor.ID) <= 300) or Unit(player):HasBuffs(A.FrostArmor.ID) == 0
+	local IceArmorRefresh = (not inCombat and Unit(player):HasBuffs(A.IceArmor.ID) >= 0 and Unit(player):HasBuffs(A.IceArmor.ID) <= 300) or Unit(player):HasBuffs(A.IceArmor.ID) == 0
 	local ArmorSelect = A.GetToggle(2, "ArmorSelect")
 
 	if not A.IsInPvP then	
@@ -276,7 +313,7 @@ local function ArmorChoice()
 			if A.MoltenArmor:IsReady(player) and MoltenArmorRefresh then
 				return A.MoltenArmor
 			end
-		elseif ArmorSelect == "FrostArmor" and FrostArmorRefresh then
+		elseif ArmorSelect == "FrostArmor" and FrostArmorRefresh and IceArmorRefresh then
 			if A.FrostArmor:IsReady(player) then
 				return A.FrostArmor
 			end
@@ -288,8 +325,30 @@ local function UseManaGem()
 	local ManaGem = A.GetToggle(2, "ManaGem")  
 	local GemItem = DetermineUsableObject(player, true, nil, true, nil, A.ManaAgate, A.ManaJade, A.ManaCitrine, A.ManaRuby, A.ManaEmerald)
 	if Unit(player):PowerPercent() <= ManaGem then 
-		return GemItem	
+		return A.ManaAgate	
 	end 
+end
+
+local function WardCheck(unitID)
+	
+	if IsUnitEnemy(unitID) then
+		local name, text, texture, startTimeMS, endTimeMS, isTradeSkill, castID, notInterruptible, spellId = UnitCastingInfo(unitID)
+		if A.FireWard:IsReady(player) then 
+			for i = 1, #BlockSpellFireWard do    
+				if spellId == BlockSpellFireWard[i] then        
+					return A.FireWard
+				end
+			end
+		end
+		if A.FrostWard:IsReady(player) then
+			for i = 1, #BlockSpellFrostWard do    
+				if spellId == BlockSpellFrostWard[i] then        
+					return A.FrostWard
+				end
+			end		
+		end
+    end  
+	
 end
 
 --- ======= ACTION LISTS =======
@@ -399,6 +458,22 @@ A[3] = function(icon, isMulti)
 	if A.ArcaneIntellect:IsReady(unitID) and Unit(player):HasBuffs(A.ArcaneIntellect.ID or A.ArcaneBrilliance.ID, true) == 0 and (unitID == player or unitID == nil) then
 		return A.ArcaneIntellect:Show(icon)
 	end	
+	
+	if A.IceBarrier:IsReady(player) and Unit(player):HasBuffs(A.IceBarrier.ID) == 0 then
+		return A.IceBarrier:Show(icon)
+	end
+	
+	if A.ColdSnap:IsReady(player) and ((A.SummonWaterElemental:GetCooldown() > 5 and A.IceBlock:GetCooldown() > 5) or (Unit(player):HasDeBuffs(A.Hypothermia.ID) < 2 and A.IceBlock:GetCooldown() > 5)) then
+		return A.ColdSnap:Show(icon)
+	end
+	
+	if BlockDebuffFireWard() then
+		return A.FireWard:Show(icon)
+	end
+	
+	if BlockDebuffFrostWard() then
+		return A.FrostWard:Show(icon)
+	end
  
     ------------------------------------------------------
     ---------------- ENEMY UNIT ROTATION -----------------
@@ -427,8 +502,21 @@ A[3] = function(icon, isMulti)
 				return A.FrostNova:Show(icon)
 			end
 			
-			if A.FireWard:IsReady(player) and (Unit("arena1" or "arena2" or "arena3"):IsCasting() == A.LavaBurst:Info() or Unit("arena1" or "arena2" or "arena3"):HasBuffs(A.HotStreak.ID) > 0) then
+			--[[if A.FireWard:IsReady(player) and (Unit("arena1" or "arena2" or "arena3"):IsCasting() == A.LavaBurst:Info() or Unit("arena1" or "arena2" or "arena3"):HasBuffs(A.HotStreak.ID) > 0) then
 				return A.FireWard:Show(icon)
+			end]]
+			
+			local UseWard = WardCheck(unitID)
+			local UseWardFocus = WardCheck(focus)
+			if UseWard then
+				return UseWard:Show(icon)
+			end
+			if UseWardFocus then
+				return UseWard:Show(icon)
+			end
+			
+			if A.Polymorph:IsReady(focus) and Unit(focus):IsControlAble("incapacitate", 100) and Unit(focus):GetCC(nil) == 0 then
+				return A.Polymorph:Show(icon)
 			end
 			
 		end
@@ -510,7 +598,7 @@ A[3] = function(icon, isMulti)
 			return A.DragonsBreath:Show(icon)
 		end
 
-		if A.ConeofCold:IsReady(player) and UseAoE and MultiUnits:GetByRange(10, 10) >= AoEEnemies then
+		if A.ConeofCold:IsReady(player) and UseAoE and MultiUnits:GetByRange(10, 10) >= 1 then
 			return A.ConeofCold:Show(icon)
 		end
 
