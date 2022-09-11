@@ -650,6 +650,10 @@ A[3] = function(icon, isMulti)
 			end
 				
 			--Rotation
+				--FerociousBite if will kill
+				if A.FerociousBite:IsReady(unitID) and Unit(unitID):Health() <= FerociousBiteDamage() and Player:ComboPoints() > 0 then
+					return A.FerociousBite:Show(icon)
+				end			
 				--FaerieFire
 				if inCombat and A.FaerieFireFeral:IsReady(unitID) and FaerieFireMissing then
 					return A.FaerieFireFeral:Show(icon)
@@ -657,10 +661,6 @@ A[3] = function(icon, isMulti)
 				--Prowl/Pounce open
 				if A.Pounce:IsReady(unitID) and Unit(player):HasBuffs(A.Prowl.ID, true) > 0 then
 					return A.Pounce:Show(icon)
-				end
-				--FerociousBite if will kill
-				if A.FerociousBite:IsReady(unitID) and Unit(unitID):Health() <= FerociousBiteDamage() and Player:ComboPoints() > 0 then
-					return A.FerociousBite:Show(icon)
 				end
 				--Energy < 30 use Tiger's Fury
 				if A.TigersFury:IsReady(player) and Player:Energy() <= 30 then
