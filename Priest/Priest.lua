@@ -171,7 +171,11 @@ Action[Action.PlayerClass]                     = {
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
     Bloodlust									= Create({ Type = "Spell", ID = 2825        }),
     Drums										= Create({ Type = "Spell", ID = 29529        }),
-    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),  
+    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),
+	BearForm									= Create({ Type = "Spell", ID = 5487, useMaxRank = true         }),
+	DireBearForm								= Create({ Type = "Spell", ID = 9634, useMaxRank = true         }),
+	FelIntelligence								= Create({ Type = "Spell", ID = 57567, useMaxRank = true         }),
+	KirusSongofVictory							= Create({ Type = "Spell", ID = 46302        }),	
 }
 
 local A                                     = setmetatable(Action[Action.PlayerClass], { __index = Action })
@@ -660,14 +664,14 @@ A[3] = function(icon, isMulti)
 		return A.InnerFire:Show(icon)
 	end		
 	
-	if A.PowerWordFortitude:IsReady(player) and Unit(player):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID) == 0 and (unitID == player or unitID == nil) then
+	if A.PowerWordFortitude:IsReady(player) and Unit(player):HasBuffs( A.PrayerofFortitude.ID) == 0 and Unit(player):HasBuffs(A.PowerWordFortitude.ID) == 0 and Unit(player):HasBuffs( A.KirusSongofVictory.ID) == 0 and (unitID == player or unitID == nil) then
 		return A.PowerWordFortitude:Show(icon)
 	end
-	if A.PowerWordFortitude:IsReady(target) and Unit(target):HasBuffs(A.PowerWordFortitude.ID or A.PrayerofFortitude.ID) == 0 and not inCombat and not Unit(target):IsNPC() then
+	if A.PowerWordFortitude:IsReady(target) and Unit(target):HasBuffs(A.PrayerofFortitude.ID) == 0 and Unit(target):HasBuffs(A.PowerWordFortitude.ID) == 0 and Unit(target):HasBuffs( A.KirusSongofVictory.ID) == 0 and not inCombat and not Unit(target):IsNPC() then
 		return A.PowerWordFortitude:Show(icon)
 	end	
 
-	if A.DivineSpirit:IsReady(target) and Unit(target):HasBuffs(A.DivineSpirit.ID) == 0 and not inCombat and not Unit(target):IsNPC() then
+	if A.DivineSpirit:IsReady(target) and Unit(target):HasBuffs(A.DivineSpirit.ID) == 0 and Unit(target):HasBuffs(A.FelIntelligence.ID) == 0 and not inCombat and not Unit(target):IsNPC() then
 		return A.DivineSpirit:Show(icon)
 	end		
 
@@ -680,7 +684,7 @@ A[3] = function(icon, isMulti)
 		local SpecSelect = A.GetToggle(2, "SpecSelect")
     
 		local SWPActive = Unit(unitID):HasDeBuffs(A.ShadowWordPain.ID, true) > 0
-		local VampiricTouchActive = A.VampiricTouch:IsTalentLearned() and Unit(unitID):HasDeBuffs(A.VampiricTouch.ID, true) > A.VampiricTouch:GetSpellCastTime()
+		local VampiricTouchActive = Unit(unitID):HasDeBuffs(A.VampiricTouch.ID, true) > A.VampiricTouch:GetSpellCastTime()
 		local DevouringPlagueRefresh = Player:GetDeBuffsUnitCount(A.DevouringPlague.ID, true) < 1 
 		local DoTMissing = not SWPActive or not VampiricTouchActive or DevouringPlagueRefresh
 
@@ -695,7 +699,7 @@ A[3] = function(icon, isMulti)
 
 		--STOPCAST
 		if A.GetToggle(1, "StopCast") and Player:IsChanneling() == A.MindFlay:Info() then
-			if DoTMissing and Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 then 
+			if DoTMissing and A.VampiricTouch:IsTalentLearned() and Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 then 
 				return A:Show(icon, ACTION_CONST_STOPCAST)
 			end
 			
@@ -732,6 +736,21 @@ A[3] = function(icon, isMulti)
 				return A.PowerWordShield:Show(icon)
 			end
 		end
+
+		if not inCombat then
+			if Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
+				if A.HolyFire:IsReady(unitID) then
+					return A.HolyFire:Show(icon)
+				end
+			elseif Unit(player):HasBuffs(A.Shadowform.ID) > 0 then
+				if A.VampiricTouch:IsReady(unitID) and not VampiricTouchActive and (Unit(player):GetSpellLastCast(A.VampiricTouch.ID) < 1 or Player:IsCasting() ~= A.VampiricTouch:Info()) then
+					return A.VampiricTouch:Show(icon)
+				elseif A.MindBlast:IsReady(unitID) then
+					return A.MindBlast:Show(icon)
+				end
+			end
+		end
+					
 
 		if inCombat and BurstIsON(unitID) then	
 			if A.BloodFury:IsReady(player) then
@@ -873,16 +892,6 @@ A[3] = function(icon, isMulti)
 			end
 		end
 
-		if A.PrayerofHealing:IsReady(unitID) and canCast and Unit(unitID):InParty() then
-			if PrayerofHealingHP >= 100 then
-				if Unit(unitID):HealthDeficit() >= HealCalc(A.PrayerofHealing) then
-					return A.PrayerofHealing:Show(icon)
-				end
-			elseif Unit(unitID):HealthPercent() <= PrayerofHealingHP then
-				return A.PrayerofHealing:Show(icon)
-			end
-		end
-
 		--Penance
 		if A.Penance:IsReady(unitID) and canCast then
 			if PenanceHP >= 100 then
@@ -944,7 +953,7 @@ A[3] = function(icon, isMulti)
 		--FlashHeal
 		if A.FlashHeal:IsReady(unitID) and not isMoving and canCast then
 			if FlashHealHP >= 100 then
-				if Unit(unitID):HealthDeficit() >= HealCalc(A.FlashHeal) then
+				if Unit(unitID):HealthDeficit() >= HealCalc(A.FlashHeal) and Unit(player):HasBuffsStacks(A.SerendipityBuff.ID, true) <= 2 then
 					return A.FlashHeal:Show(icon)
 				end
 			elseif FlashHealHP <= 99 then
@@ -956,15 +965,18 @@ A[3] = function(icon, isMulti)
 
 		--Need to PWS blanket. Player can use macro to block PWS when wanting to mana save? Need brainstorm here.
 		local BlanketPWS = A.GetToggle(2, "BlanketPWS")
-		if A.PowerWordShield:IsReady(unitID) and A.IPWShield:IsTalentLearned() and PWSBlanket then
+		local localizedClass, englishClass, classIndex = UnitClass(unitID)		
+		if A.PowerWordShield:IsReady(unitID) and BlanketPWS and A.IPWShield:IsTalentLearned() then
 			for i = 1, #getmembersAll do 
 				if Unit(getmembersAll[i].Unit):IsPlayer() and not IsUnitEnemy(getmembersAll[i].Unit) and Unit(getmembersAll[i].Unit):GetRange() <= 40 and Unit(getmembersAll[i].Unit):HasBuffs(A.PowerWordShield.ID, true) == 0  and Unit(getmembersAll[i].Unit):HasDeBuffs(A.WeakenedSoul.ID, true) == 0 then 
 					if UnitGUID(getmembersAll[i].Unit) ~= currGUID then
-						HealingEngine.SetTarget(getmembersAll[i].Unit, 0.3)      
-						return A.PowerWordShield:Show(icon)
+						HealingEngine.SetTarget(getmembersAll[i].Unit, 0.3) 
 					end    
 				end                
-			end  
+			end 
+			if Unit(unitID):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(unitID):HasDeBuffs(A.WeakenedSoul.ID) == 0 and englishClass ~= "WARRIOR" and Unit(unitID):HasBuffs(A.BearForm.ID) == 0 and Unit(unitID):HasBuffs(A.DireBearForm.ID) == 0 then
+				return A.PowerWordShield:Show(icon)
+			end
 		end
 
 		--PrayerofMending
@@ -982,10 +994,12 @@ A[3] = function(icon, isMulti)
 					if Unit(getmembersAll[i].Unit):IsPlayer() and not IsUnitEnemy(getmembersAll[i].Unit) and Unit(getmembersAll[i].Unit):HealthPercent() < 95 and A.Renew:IsReady(getmembersAll[i].Unit) and Unit(getmembersAll[i].Unit):GetRange() <= 40 and Unit(getmembersAll[i].Unit):HasBuffs(A.Renew.ID, true) == 0 then 
 						if UnitGUID(getmembersAll[i].Unit) ~= currGUID then
 							HealingEngine.SetTarget(getmembersAll[i].Unit, 0.3)      
-							return A.Renew:Show(icon)
 						end    
 					end                
-				end    
+				end 
+				if Unit(unitID):HasBuffs(A.Renew.ID, true) == 0 then
+					return A.Renew:Show(icon)
+				end
 			end
 			if not BlanketRenew then
 				if Unit(unitID):HealthPercent() < RenewHP and Unit(unitID):HasBuffs(A.Renew.ID, true) == 0 then 
