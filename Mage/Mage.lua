@@ -175,7 +175,9 @@ Action[Action.PlayerClass]                     = {
 	Heroism										= Create({ Type = "Spell", ID = 32182        }),
     Bloodlust									= Create({ Type = "Spell", ID = 2825        }),
     Drums										= Create({ Type = "Spell", ID = 29529        }),
-    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),  
+    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),
+	FelIntelligence								= Create({ Type = "Spell", ID = 57567, useMaxRank = true         }),
+	KirusSongofVictory							= Create({ Type = "Spell", ID = 46302         }),	
 }
 
 local A                                     = setmetatable(Action[Action.PlayerClass], { __index = Action })
@@ -455,11 +457,11 @@ A[3] = function(icon, isMulti)
 		end
 	end
 
-	if A.ArcaneIntellect:IsReady(unitID) and Unit(player):HasBuffs(A.ArcaneIntellect.ID or A.ArcaneBrilliance.ID, true) == 0 and (unitID == player or unitID == nil) then
+	if A.ArcaneIntellect:IsReady(unitID) and Unit(player):HasBuffs(A.ArcaneIntellect.ID) == 0 and Unit(player):HasBuffs(A.FelIntelligence.ID) == 0 and Unit(player):HasBuffs( A.KirusSongofVictory.ID) == 0 and Unit(player):HasBuffs(A.ArcaneBrilliance.ID) == 0 and (unitID == player or unitID == nil) then
 		return A.ArcaneIntellect:Show(icon)
 	end	
 	
-	if A.IceBarrier:IsReady(player) and Unit(player):HasBuffs(A.IceBarrier.ID) == 0 then
+	if A.IceBarrier:IsReady(player) and Unit(player):HasBuffs(A.IceBarrier.ID) == 0 and not Player:IsMounted() then
 		return A.IceBarrier:Show(icon)
 	end
 	
