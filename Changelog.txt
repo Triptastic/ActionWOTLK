@@ -1,5 +1,17 @@
 Changelog
 
+11 Sept 2022
+Priest:
+Added Fortitude/Spirit check for Warlock/World buffs.
+
+Mage:
+Added mounted check for Ice Barrier.
+Added Arcane Intellect/Brilliance check for Warlock/World buffs.
+
+Druid:
+Increased priority of Ferocious Bite if target killable.
+
+
 05 Sept 2022
 Mage:
 Fixed Mana Gem icon.
