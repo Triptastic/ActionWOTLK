@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.00 (24 August 2022)",
+    DateTime = "v1.2 (15 September 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -238,7 +238,26 @@ A.Data.ProfileUI = {
                 {
                     E = "LayoutSpace",                                                                         
                 },
-            }, 			
+            },
+			{
+				{ -- READINESS
+                    E = "Checkbox", 
+                    DB = "ReadinessMisdirection",
+                    DBV = true,
+                    L = { 
+                        ANY = "Readiness with Misdirection", 
+                    }, 
+                    TT = { 
+                        ANY = "Automatically use Readiness with Misdirection at the start of a boss fight. All subsequent uses of Readiness in the same encounter will be used on Rapid Fire.", 
+                    }, 
+                    M = {},
+                },
+			},
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
+            },			
 			{
 				{
                     E = "Dropdown",                                                         

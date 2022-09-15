@@ -295,6 +295,7 @@ A[3] = function(icon, isMulti)
 	local ConcussiveShotPvE = A.GetToggle(2, "ConcussiveShotPvE")
 	local IntimidationPvE = A.GetToggle(2, "IntimidationPvE")
 	local ProtectFreeze = A.GetToggle(2, "ProtectFreeze")
+	local ReadinessMisdirection = A.GetToggle(2, "ReadinessMisdirection")
 	local AspectController = A.GetToggle(2, "AspectController")
 	--AspectController[1] = Hawk
 	--AspectController[2] = Cheetah
@@ -480,6 +481,15 @@ A[3] = function(icon, isMulti)
 			if A.RapidFire:IsReady(player) and Unit(player):HasBuffs(A.RapidFire.ID, true) == 0 then
 				return A.RapidFire:Show(icon)
 			end
+			
+			if A.Readiness:IsReady(player) then
+				if not ReadinessMisdirection and A.RapidFire:GetCooldown() >= 20 then
+					return A.Readiness:Show(icon)
+				end
+				if ReadinessMisdirection and combatTime < 10 and A.Misdirection:GetCooldown() > 1 then
+					return A.Readiness:Show(icon)
+				end
+			end				
 			
 			if A.BloodFury:IsReady(player) then
 				return A.BloodFury:Show(icon)

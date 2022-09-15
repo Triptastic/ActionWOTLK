@@ -1,5 +1,20 @@
 Changelog
 
+15 Sept 2022
+Hunter:
+Added Readiness with Rapid Fire with an option to use it with Misdirection within the first 10 seconds of combat. 
+
+Priest:
+Added Holy Nova usage.
+Fixed ignore Warriors/Bears with PWShield.
+Changed check for PWShield blanket to be with Soul Warding talent.
+Added Will to Survive stun check.
+Added Fade on LoC with Improved Shadowform.
+
+Mage:
+Fixed Mana Gem cooldown check.
+
+
 11 Sept 2022
 Priest:
 Added Fortitude/Spirit check for Warlock/World buffs.
