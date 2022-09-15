@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.1 (11 September 2022)",
+    DateTime = "v1.3 (15 September 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -229,7 +229,7 @@ A.Data.ProfileUI = {
                     },                     
                     M = {},
                 },					
-			},			
+			},
 			{
 				{ -- Cleanse
                     E = "Checkbox", 
@@ -422,11 +422,28 @@ A.Data.ProfileUI = {
                         ANY = "Blanket Power Word: Shield",
                     }, 
                     TT = { 
-                        ANY = "Spread Power Word: Shield over entire party/raid when able. Only works with Improved Power Word: Shield talent.",
+                        ANY = "Spread Power Word: Shield over entire party/raid when able. Only works with Soul Warding talent.",
                     }, 
                     M = {},
                 },				
 			},
+			{
+                { -- NovaMana
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "NovaMana",
+                    DBV = 0,
+                    ONLYOFF = true,
+                    L = { 
+                        ANY = "Holy Nova in AoE Mana (%)",
+                    },
+                    TT = { 
+                        ANY = "Mana (%) to use Holy Nova with 4 or more enemies (must have enemy targeted).", 
+                    },                     
+                    M = {},
+                },
+			},			
 			{ -- PWS HEADER
                 {
                     E = "Header",
