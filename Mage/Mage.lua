@@ -326,8 +326,10 @@ end
 local function UseManaGem()
 	local ManaGem = A.GetToggle(2, "ManaGem")  
 	local GemItem = DetermineUsableObject(player, true, nil, true, nil, A.ManaAgate, A.ManaJade, A.ManaCitrine, A.ManaRuby, A.ManaEmerald)
-	if Unit(player):PowerPercent() <= ManaGem then 
-		return A.ManaAgate	
+	if GemItem then 
+		if Unit(player):PowerPercent() <= ManaGem then 
+			return A.ManaAgate
+		end
 	end 
 end
 
