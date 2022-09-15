@@ -483,7 +483,7 @@ A[3] = function(icon, isMulti)
 			end
 			
 			if A.Readiness:IsReady(player) then
-				if not ReadinessMisdirection and A.RapidFire:GetCooldown() >= 20 then
+				if (not ReadinessMisdirection or combatTime > 10) and A.RapidFire:GetCooldown() >= 20 then
 					return A.Readiness:Show(icon)
 				end
 				if ReadinessMisdirection and combatTime < 10 and A.Misdirection:GetCooldown() > 1 then
