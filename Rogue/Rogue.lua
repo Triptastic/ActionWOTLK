@@ -224,7 +224,7 @@ local function Interrupts(unitID)
 		return A.Kick
 	end
 	
-	if useKick and A.Gouge:IsReady(unitID) and not notInterruptable and A.Gouge:AbsentImun(interruptUnitID, Temp.AuraForCC) and Unit(interruptUnitID):IsControlAble("incapacitate") then
+	if useKick and A.Gouge:IsReady(unitID) and not notInterruptable and A.Gouge:AbsentImun(unitID, Temp.AuraForCC) and Unit(unitID):IsControlAble("incapacitate") then
 		return A.Gouge
 	end
 	
