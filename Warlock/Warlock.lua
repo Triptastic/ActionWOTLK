@@ -295,7 +295,7 @@ end
 
 local function BestArmor()
 
-	local NoArmor = Unit(player):HasBuffs(28176 or 28189 or 687 or 696 or 706 or 1086 or 11733 or 11734 or 11735 or 27260 or 47892 or 47893) == 0
+	local NoArmor = Unit(player):HasBuffs(A.DemonSkin.ID) == 0 and Unit(player):HasBuffs(A.DemonArmor.ID) == 0 and Unit(player):HasBuffs(A.FelArmor.ID) == 0
 
 	if NoArmor then
 		if A.FelArmor:IsReady(player) then
@@ -489,11 +489,6 @@ A[3] = function(icon, isMulti)
 		return A.WilloftheForsaken:Show(icon)
 	end 
 	
-	-- EscapeArtist
-	if A.EscapeArtist:AutoRacial() and not mouseoverInRange30 and not targetInRange30 then 
-		return A.EscapeArtist:Show(icon)
-	end 	
-	
     --###############
     --##### OOC #####
     --###############    
@@ -604,7 +599,7 @@ A[3] = function(icon, isMulti)
 		end
 		
 		--AFFLICTION
-		if InRange and (SpecSelect == "Affliction" or (SpecSelect == "Auto" and A.Haunt:IsTalentLearned())) then
+		if InRange(unitID) and (SpecSelect == "Affliction" or (SpecSelect == "Auto" and A.Haunt:IsTalentLearned())) then
 			if A.Shadowflame:IsReady(unitID) and UseAoE and MultiUnits:GetByRange(15, 4) >= 3 then
 				return A.Shadowflame:Show(icon)
 			end	
@@ -651,7 +646,7 @@ A[3] = function(icon, isMulti)
 		end
 		
 		--DEMONOLOGY
-		if InRange and (SpecSelect == "Demonology" or (SpecSelect == "Auto" and A.SummonFelguard:IsTalentLearned())) then
+		if InRange(unitID) and (SpecSelect == "Demonology" or (SpecSelect == "Auto" and A.SummonFelguard:IsTalentLearned())) then
 
 			if A.Metamorphosis:IsReady(player) and BurstIsON(unitID) then
 				if (UseAoE and MultiUnits:GetByRange(15, 4) >= 3) or (Unit(unitID):TimeToDie() > 30 or Unit(unitID):IsBoss()) then 
@@ -717,7 +712,7 @@ A[3] = function(icon, isMulti)
 		end
 		
 		--DESTRUCTION
-		if InRange and (SpecSelect == "Destruction" or (SpecSelect == "Auto" and A.ChaosBolt:IsTalentLearned())) then
+		if InRange(unitID) and (SpecSelect == "Destruction" or (SpecSelect == "Auto" and A.ChaosBolt:IsTalentLearned())) then
 
 			if A.Incinerate:IsReady(unitID) and not inCombat and canCast and not isMoving then
 				return A.Incinerate:Show(icon)
@@ -767,7 +762,7 @@ A[3] = function(icon, isMulti)
 		end
 		
 		--Failsafe if nothing selected
-		if inRange then
+		if InRange(unitID) then
 			if A.ShadowBolt:IsReady(unitID) and (A.ImprovedShadowBolt:IsTalentLearned() or not inCombat) and not isMoving and canCast then 
 				if Unit(unitID):HasDeBuffs(A.ShadowMastery.ID) < A.ShadowBolt:GetSpellCastTime() and not A.ShadowBolt:IsSpellInFlight() then
 					return A.ShadowBolt:Show(icon)
@@ -786,7 +781,11 @@ A[3] = function(icon, isMulti)
 			
 			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= 5 and not isMoving then
 				return A.Immolate:Show(icon)
-			end			
+			end	
+
+			if A.ShadowBolt:IsReady(unitID) then
+				return A.ShadowBolt:Show(icon)
+			end
         end
     end
     
