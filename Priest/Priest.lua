@@ -171,14 +171,15 @@ Action[Action.PlayerClass]                     = {
 	
 	
     --Misc
-    Heroism										= Create({ Type = "Spell", ID = 32182        }),
-    Bloodlust									= Create({ Type = "Spell", ID = 2825        }),
-    Drums										= Create({ Type = "Spell", ID = 29529        }),
+    Heroism										= Create({ Type = "Spell", ID = 32182, Hidden = true        }),
+    Bloodlust									= Create({ Type = "Spell", ID = 2825, Hidden = true        }),
+    Drums										= Create({ Type = "Spell", ID = 29529, Hidden = true        }),
     SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),
 	BearForm									= Create({ Type = "Spell", ID = 5487, useMaxRank = true         }),
 	DireBearForm								= Create({ Type = "Spell", ID = 9634, useMaxRank = true         }),
 	FelIntelligence								= Create({ Type = "Spell", ID = 57567, useMaxRank = true         }),
-	KirusSongofVictory							= Create({ Type = "Spell", ID = 46302        }),	
+	KirusSongofVictory							= Create({ Type = "Spell", ID = 46302, Hidden = true        }),
+	DazeBehind									= Create({ Type = "Spell", ID = 1604, Hidden = true        }),	
 }
 
 local A                                     = setmetatable(Action[Action.PlayerClass], { __index = Action })
@@ -235,6 +236,14 @@ local Temp = {
 	OpenerRotation							= false,
 	VampiricTouchDelay						= 0,
 }
+
+local function IsSchoolShadowUP()
+    return LoC:IsMissed("SILENCE") and LoC:Get("SCHOOL_INTERRUPT", "SHADOW") == 0
+end 
+
+local function IsSchoolHolyUP()
+    return LoC:IsMissed("SILENCE") and LoC:Get("SCHOOL_INTERRUPT", "HOLY") == 0
+end 
 
 local ImmuneArcane = {
     [18864] = true,
@@ -519,9 +528,28 @@ local function PoHCheckR5()
 
 end
 
-local ArenaInterrupts = {
+local function ImmuneFear(unitID)
+	
+	return Unit(unitID):HasBuffs({
+	
+		50397, --Lichborne
+		45438, --Ice Block
+		642, --Divine Shield
+		18499, --Berserker Rage
+		48707, --Anti-Magic Shell
+	
+	}) > 0
+end
 
-}
+local function DisarmCheck(unitID)
+	
+	return Unit(unitID):HasBuffs({
+	
+		46924, -- Bladestorm
+		51690, -- Killing Spree
+	
+	}) > 0
+end
 
 --- ======= ACTION LISTS =======
 -- [3] Single Rotation
@@ -572,7 +600,7 @@ A[3] = function(icon, isMulti)
 		
 		-- RestorativePotion
 		if PotionController == "RestorativePotion" and Action.CanUseRestorativePotion(icon) then 
-			return true 
+			return true
 		end   
 
 		-- LimitedInvulnerabilityPotion
@@ -614,43 +642,7 @@ A[3] = function(icon, isMulti)
 		if A.Dispersion:IsReady(player) and Unit(player):HealthPercent() <= DispersionHP then
 			return A.Dispersion:Show(icon)
 		end
-	end
-
-	--PsychicScream
-	if A.IsInPvP and A.PsychicScream:IsReady(player, true) then 
-		-- Enemy healer
-		if A.Zone == "pvp" then 
-			local enemyHealerInRange, _, enemyHealerUnitID = EnemyTeam("HEALER"):PlayersInRange(1)
-			if enemyHealerInRange and not UnitIsUnit(enemyHealerUnitID, "target") and Unit(enemyHealerUnitID):GetRange() > 0 and Unit(enemyHealerUnitID):GetRange() <= 8 and A.PsychicScream:AbsentImun(enemyHealerUnitID, Temp.AuraForFear) and Unit(enemyHealerUnitID):IsControlAble("fear") then 
-				return A.PsychicScream:Show(icon)
-			end 
-		end 
-		
-		-- Enemy players 
-		local namePlateUnitID
-		local damagersOnPlayer = 0
-		for namePlateUnitID in pairs(ActiveUnitPlates) do                 
-			if Unit(namePlateUnitID):IsPlayer() and Unit(namePlateUnitID):GetRange() > 0 and Unit(namePlateUnitID):GetRange() <= 8 and A.PsychicScream:AbsentImun(namePlateUnitID, Temp.AuraForFear) and Unit(namePlateUnitID):IsControlAble("fear") then 
-				if UnitIsUnit(namePlateUnitID .. "target", player) and Unit(namePlateUnitID):IsDamager() then 
-					damagersOnPlayer = damagersOnPlayer + 1
-				end 
-				
-				-- Multi-fear all damager who sits on player                    
-				if damagersOnPlayer >= 3 then 
-					return A.PsychicScream:Show(icon)
-				end 
-				
-				-- Fear nearest not selected in target:
-				-- 1. With any burst buffs
-				-- 2. With any casting spell 
-				-- 3. If it's enemy healer 
-				-- 4. If in unit's own target on execute phase any unit 
-				if not UnitIsUnit(namePlateUnitID, "target") and (Unit(namePlateUnitID .. "target"):IsExecuted() or Unit(namePlateUnitID):IsCastingRemains() > 0 or Unit(namePlateUnitID):HasBuffs("DamageBuffs") > 2 or Unit(namePlateUnitID):IsHealer()) and (not Unit(namePlateUnitID):IsFocused() or Unit(namePlateUnitID):GetRealTimeDMG() == 0) then 
-					return A.PsychicScream:Show(icon)
-				end 
-			end 
-		end 
-	end         	
+	end     	
     
 	--Will of the Forsaken
 	if A.WilloftheForsaken:AutoRacial() then 
@@ -678,11 +670,11 @@ A[3] = function(icon, isMulti)
 		return A.PowerWordFortitude:Show(icon)
 	end	
 
-	if A.DivineSpirit:IsReady(target) and Unit(target):HasBuffs(A.DivineSpirit.ID) == 0 and Unit(target):HasBuffs(A.FelIntelligence.ID) == 0 and not inCombat and not Unit(target):IsNPC() then
+	if A.DivineSpirit:IsReady(target) and Unit(target):HasBuffs(A.DivineSpirit.ID) == 0 and Unit(target):HasBuffs(A.PrayerofSpirit.ID) == 0 and Unit(target):HasBuffs(A.FelIntelligence.ID) == 0 and not inCombat and not Unit(target):IsNPC() then
 		return A.DivineSpirit:Show(icon)
 	end		
 	
-	if A.Fade:IsReady(player) and A.ImprovedShadowform:IsTalentLearned() and Unit(player):HasBuffs(A.Shadowform.ID) > 0 and (LoC:Get("STUN") > 1 or (not inRange and (LoC:Get("ROOT") > 1 or (LoC:Get("SNARE") > 0 and Unit(player):GetMaxSpeed() <= 50)))) then
+	if A.Fade:IsReady(player) and A.ImprovedShadowform:IsTalentLearned() and Unit(player):HasBuffs(A.Shadowform.ID) > 0 and (LoC:Get("STUN") > 1 or (not inRange and (LoC:Get("ROOT") > 1 or (LoC:Get("SNARE") > 0 and Unit(player):GetMaxSpeed() <= 50)))) and Unit(player):HasDeBuffs(A.DazeBehind.ID) == 0 then
 		return A.Fade:Show(icon)
 	end
 	
@@ -700,8 +692,10 @@ A[3] = function(icon, isMulti)
     
 		local SWPActive = Unit(unitID):HasDeBuffs(A.ShadowWordPain.ID, true) > 0
 		local VampiricTouchActive = Unit(unitID):HasDeBuffs(A.VampiricTouch.ID, true) > A.VampiricTouch:GetSpellCastTime()
-		local DevouringPlagueRefresh = Player:GetDeBuffsUnitCount(A.DevouringPlague.ID, true) < 1
-		local DoTMissing = not SWPActive or not VampiricTouchActive or DevouringPlagueRefresh
+		local DevouringPlagueRefresh = Player:GetDeBuffsUnitCount(A.DevouringPlague.ID, true) < 1 and Player:Mana() >= A.DevouringPlague:GetSpellPowerCost()
+		local DoTMissing = (not SWPActive and Player:Mana() >= A.ShadowWordPain:GetSpellPowerCost()) or (not VampiricTouchActive and Player:Mana() >= A.VampiricTouch:GetSpellPowerCost()) or DevouringPlagueRefresh
+
+		local isShadowSpec = A.Shadowform:IsTalentLearned()
 
 		--VampTouch DoubleCast fix
 		if Temp.VampiricTouchDelay == 0 and Player:IsCasting() == A.VampiricTouch:Info() then
@@ -713,132 +707,218 @@ A[3] = function(icon, isMulti)
 			Temp.VampiricTouchDelay = Temp.VampiricTouchDelay - 1
 		end	
 
-		--STOPCAST
-		if A.GetToggle(1, "StopCast") and Player:IsChanneling() == A.MindFlay:Info() then
-			if DoTMissing and A.VampiricTouch:IsTalentLearned() and Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 then 
-				return A:Show(icon, ACTION_CONST_STOPCAST)
-			end
-			
-			if A.ShadowWordDeath:IsReadyByPassCastGCD(unitID) and Unit(unitID):Health() < SWDeathDmgCalc() and Unit(player):Health() > SWDeathDmgCalc() then
-				return A:Show(icon, ACTION_CONST_STOPCAST)
-			end				
-		end
-
-		local DoInterrupt = Interrupts(unitID)
-		if DoInterrupt then 
-			return DoInterrupt:Show(icon)
-        end
-
-		local DoPurge = CanDispel(unitID, isFriendly)
-		if DoPurge then 
-			return DoPurge:Show(icon)
-        end
-	
 		local ShadowfiendMana = A.GetToggle(2, "ShadowfiendMana")
 		if A.Shadowfiend:IsReady(unitID) and inCombat and Player:ManaPercentage() <= ShadowfiendMana then
 			return A.Shadowfiend:Show(icon)
 		end
-	
-		if A.Shadowform:IsReady(player) and Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
-			return A.Shadowform:Show(icon)
-		end
 
-		if A.PowerWordShield:IsReady(player) and Unit(player):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(player):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
-			if A.IsInPvP or GetNumGroupMembers() == 0 then
-				return A.PowerWordShield:Show(icon)
+		if A.IsInPvP or A.Zone == "pvp" or A.Zone == "arena" then
+			
+			--STOPCAST
+			if Unit(unitID):HasBuffs(23920) > 0 then --Spell Reflection
+				A.Toaster:SpawnByTimer("TripToast", 0, "Spell Reflection!", "Using Mind Soothe to counter Spell Reflection!", 23920)
+				if A.GetToggle(1, "StopCast") and Player:IsCasting() then
+					return A:Show(icon, ACTION_CONST_STOPCAST)
+				end
+				return A.MindSoothe:Show(icon)
+			end			
+			
+			if A.PsychicScream:IsReady(player) then
+				local namePlateUnitID
+				for namePlateUnitID in pairs(ActiveUnitPlates) do                 
+					if Unit(namePlateUnitID):IsPlayer() and not Unit(namePlateUnitID):IsNPC() and not Unit(namePlateUnitID):IsTotem() and A.IsUnitEnemy(namePlateUnitID) and Unit(namePlateUnitID):GetRange() > 0 and Unit(namePlateUnitID):GetRange() <= 8 then 
+						return A.PsychicScream:Show(icon)
+					end 
+				end
+
+				if Unit(unitID):GetRange() <= 8 and not ImmuneFear(unitID) then
+					return A.PsychicScream:Show(icon)
+				end
 			end
-		end
+			
+			if A.PsychicHorror:IsReady(unitID) and DisarmCheck(unitID) then
+				return A.PsychicHorror:Show(icon)
+			end
+			
+			if A.Renew:IsReady(player) and isShadowSpec and Unit(player):HasBuffs(A.Shadowform.ID) == 0 and Unit(player):HealthPercent() <= 90 and Unit(player):HasBuffs(A.Renew.ID, true) == 0 then
+				return A.Renew:Show(icon)
+			end
+			
+			if A.Shadowform:IsReady(player) and Unit(player):HasBuffs(A.Shadowform.ID) == 0 and DoTMissing then
+				return A.Shadowform:Show(icon)
+			end			
 
-		if not inCombat then
-			if Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
-				if A.HolyFire:IsReady(unitID) then
+			if A.ShadowWordDeath:IsReady(unitID) and Unit(unitID):Health() < SWDeathDmgCalc() and Unit(player):Health() > SWDeathDmgCalc() and A.IsUnitEnemy(unitID) then
+				return A.ShadowWordDeath:Show(icon)
+			end
+
+			local DPSHEAL = A.GetToggle(2, "DPSHEAL")
+			if (Player:ManaPercentage() > DPSHEAL and TeamCache.Friendly.Size >= 2) or not Unit(player):InParty() or isShadowSpec then
+
+				if A.VampiricTouch:IsReady(unitID) and not isMoving and not VampiricTouchActive and Temp.VampiricTouchDelay == 0 then
+					return A.VampiricTouch:Show(icon)
+				end	
+
+				if A.HolyFire:IsReady(unitID) and not isMoving and (Unit(player):HasBuffs(A.Shadowform.ID) == 0 or not IsSchoolShadowUP()) then
 					return A.HolyFire:Show(icon)
 				end
-			elseif Unit(player):HasBuffs(A.Shadowform.ID) > 0 then
-				if A.VampiricTouch:IsReady(unitID) and not VampiricTouchActive and Temp.VampiricTouchDelay == 0 then
-					return A.VampiricTouch:Show(icon)
-				elseif A.MindBlast:IsReady(unitID) then
+
+				if A.ShadowWordPain:IsReady(unitID) and not SWPActive then
+					return A.ShadowWordPain:Show(icon)
+				end			
+		
+				if A.DevouringPlague:IsReady(unitID) and DevouringPlagueRefresh then
+					return A.ShadowWeaving:Show(icon)
+				end	
+				
+				if A.MindBlast:IsReady(unitID) and not isMoving then
 					return A.MindBlast:Show(icon)
+				end	
+
+				if A.MindFlay:IsReady(unitID) and not isMoving and A.MindBlast:GetCooldown() > 1 then
+					return A.MindFlay:Show(icon)
+				end	
+
+				if A.Smite:IsReady(unitID) and not isMoving and (Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 or not IsSchoolShadowUP()) then
+					return A.Smite:Show(icon)
 				end
 			end
-		end
-					
+			
+			if A.HolyNova:IsReady(player) then
+				local namePlateUnitID
+				for namePlateUnitID in pairs(ActiveUnitPlates) do                 
+					if Unit(namePlateUnitID):IsPlayer() and A.IsUnitEnemy(namePlateUnitID) and Unit(namePlateUnitID):GetRange() > 0 and Unit(namePlateUnitID):GetRange() <= 8 and Unit(player):Health() > Unit(namePlateUnitID):Health() then 
+						return A.HolyNova:Show(icon)
+					end 
+				end
+			end
+			
+		end 
+		
+		if not A.IsInPvP then
+			--STOPCAST
+			if A.GetToggle(1, "StopCast") and Player:IsChanneling() == A.MindFlay:Info() then
+				if DoTMissing and A.VampiricTouch:IsTalentLearned() and Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 then 
+					return A:Show(icon, ACTION_CONST_STOPCAST)
+				end
+				
+				if A.ShadowWordDeath:IsReadyByPassCastGCD(unitID) and Unit(unitID):Health() < SWDeathDmgCalc() and Unit(player):Health() > SWDeathDmgCalc() then
+					return A:Show(icon, ACTION_CONST_STOPCAST)
+				end				
+			end
 
-		if inCombat and BurstIsON(unitID) then	
-			if A.BloodFury:IsReady(player) then
-				return A.BloodFury:Show(icon)
+			local DoInterrupt = Interrupts(unitID)
+			if DoInterrupt then 
+				return DoInterrupt:Show(icon)
 			end
-			
-			if A.Berserking:IsReady(player) then
-				return A.Berserking:Show(icon)
+
+			local DoPurge = CanDispel(unitID, isFriendly)
+			if DoPurge then 
+				return DoPurge:Show(icon)
 			end
-			
-			--Trinket 1
-			if A.Trinket1:IsReady(player) then
-				return A.Trinket1:Show(icon)    
-			end
-			
-			--Trinket 2
-			if A.Trinket2:IsReady(player) then
-				return A.Trinket2:Show(icon)    
-			end    			
-		end
 		
-		local NovaMana = A.GetToggle(2, "NovaMana")
-		if A.HolyNova:IsReady(player) and UseAoE and Player:ManaPercentage() > NovaMana and MultiUnits:GetByRange(10, 5) >= 4 and Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
-			return A.HolyNova:Show(icon)
+			if A.Shadowform:IsReady(player) and Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
+				return A.Shadowform:Show(icon)
+			end
+
+			if A.PowerWordShield:IsReady(player) and Unit(player):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(player):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
+				if GetNumGroupMembers() == 0 then
+					return A.PowerWordShield:Show(icon)
+				end
+			end
+
+			if not inCombat then
+				if Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
+					if A.HolyFire:IsReady(unitID) then
+						return A.HolyFire:Show(icon)
+					end
+				elseif Unit(player):HasBuffs(A.Shadowform.ID) > 0 then
+					if A.VampiricTouch:IsReady(unitID) and not VampiricTouchActive and Temp.VampiricTouchDelay == 0 then
+						return A.VampiricTouch:Show(icon)
+					elseif A.MindBlast:IsReady(unitID) then
+						return A.MindBlast:Show(icon)
+					end
+				end
+			end
+						
+
+			if inCombat and BurstIsON(unitID) then	
+				if A.BloodFury:IsReady(player) then
+					return A.BloodFury:Show(icon)
+				end
+				
+				if A.Berserking:IsReady(player) then
+					return A.Berserking:Show(icon)
+				end
+				
+				--Trinket 1
+				if A.Trinket1:IsReady(player) then
+					return A.Trinket1:Show(icon)    
+				end
+				
+				--Trinket 2
+				if A.Trinket2:IsReady(player) then
+					return A.Trinket2:Show(icon)    
+				end    			
+			end
+			
+			local NovaMana = A.GetToggle(2, "NovaMana")
+			if A.HolyNova:IsReady(player) and UseAoE and Player:ManaPercentage() > NovaMana and MultiUnits:GetByRange(10, 5) >= 4 and Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
+				return A.HolyNova:Show(icon)
+			end
+			
+			local DPSHEAL = A.GetToggle(2, "DPSHEAL")
+			if (Player:ManaPercentage() > DPSHEAL and TeamCache.Friendly.Size >= 2) or not Unit(player):InParty() or isShadowSpec then
+				if A.ShadowWordDeath:IsReady(unitID) and Unit(unitID):Health() < SWDeathDmgCalc() and Unit(player):Health() > SWDeathDmgCalc() then
+					return A.ShadowWordDeath:Show(icon)
+				end
+				
+				if A.HolyFire:IsReady(unitID) and not isMoving and (Unit(player):HasBuffs(A.Shadowform.ID) == 0 or not IsSchoolShadowUP()) then
+					return A.HolyFire:Show(icon)
+				end
+				
+				--SWP only with Shadow Weavingx5
+				if A.ShadowWordPain:IsReady(unitID) and not SWPActive and ((Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 and A.VampiricTouch:IsTalentLearned()) or not A.VampiricTouch:IsTalentLearned()) then
+					return A.ShadowWordPain:Show(icon)
+				end
+				
+				if A.VampiricTouch:IsReady(unitID) and not isMoving and not VampiricTouchActive and Temp.VampiricTouchDelay == 0 then
+					return A.VampiricTouch:Show(icon)
+				end
+				
+				if A.DevouringPlague:IsReady(unitID) and DevouringPlagueRefresh then
+					return A.ShadowWeaving:Show(icon)
+				end
+				
+				if A.MindBlast:IsReady(unitID) and not isMoving then
+					return A.MindBlast:Show(icon)
+				end
+				
+				local MindSearTargets = A.GetToggle(2, "MindSearTargets")
+				if A.MindSear:IsReady(unitID) and not isMoving and MultiUnits:GetActiveEnemies(36, 10) >= MindSearTargets then
+					return A.MindSear:Show(icon)
+				end
+				
+				if A.MindFlay:IsReady(unitID) and not isMoving and A.MindBlast:GetCooldown() > 1 then
+					return A.MindFlay:Show(icon)
+				end
+				
+				if A.Smite:IsReady(unitID) and not isMoving and (Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 or not IsSchoolShadowUP()) then
+					return A.Smite:Show(icon)
+				end
+				
+				local SWDMoving = A.GetToggle(2, "SWDMoving")
+				if A.ShadowWordDeath:IsReady(unitID) and SWDMoving and isMoving and Unit(player):Health() > SWDeathDmgCalc() then
+					return A.ShadowWordDeath:Show(icon)
+				end
+				
+				local DPMoving = A.GetToggle(2, "DPMoving")		
+				if A.DevouringPlague:IsReady(unitID) and DPMoving then
+					return A.ShadowWeaving:Show(icon)
+				end		
+			end
 		end
-		
-		local DPSHEAL = A.GetToggle(2, "DPSHEAL")
-		if (Player:ManaPercentage() > DPSHEAL and TeamCache.Friendly.Size >= 2) or not Unit(player):InParty() or Unit(player):HasBuffs(A.Shadowform.ID, true) > 0 then
-			if A.ShadowWordDeath:IsReady(unitID) and Unit(unitID):Health() < SWDeathDmgCalc() and Unit(player):Health() > SWDeathDmgCalc() then
-				return A.ShadowWordDeath:Show(icon)
-			end
-			
-			if A.HolyFire:IsReady(unitID) and not isMoving and Unit(player):HasBuffs(A.Shadowform.ID) == 0 then
-				return A.HolyFire:Show(icon)
-			end
-			
-			--SWP only with Shadow Weavingx5
-			if A.ShadowWordPain:IsReady(unitID) and not SWPActive and ((Unit(player):HasBuffsStacks(A.ShadowWeaving.ID, true) >= 5 and A.VampiricTouch:IsTalentLearned()) or not A.VampiricTouch:IsTalentLearned()) then
-				return A.ShadowWordPain:Show(icon)
-			end
-			
-			if A.VampiricTouch:IsReady(unitID) and not isMoving and not VampiricTouchActive and Temp.VampiricTouchDelay == 0 then
-				return A.VampiricTouch:Show(icon)
-			end
-			
-			if A.DevouringPlague:IsReady(unitID) and DevouringPlagueRefresh then
-				return A.ShadowWeaving:Show(icon)
-			end
-			
-			if A.MindBlast:IsReady(unitID) and not isMoving then
-				return A.MindBlast:Show(icon)
-			end
-			
-			local MindSearTargets = A.GetToggle(2, "MindSearTargets")
-			if A.MindSear:IsReady(unitID) and not isMoving and MultiUnits:GetActiveEnemies(36, 10) >= MindSearTargets then
-				return A.MindSear:Show(icon)
-			end
-			
-			if A.MindFlay:IsReady(unitID) and not isMoving and A.MindBlast:GetCooldown() > 1 then
-				return A.MindFlay:Show(icon)
-			end
-			
-			if A.Smite:IsReady(unitID) and not isMoving and Unit(player):HasBuffs(A.Shadowform.ID, true) == 0 then
-				return A.Smite:Show(icon)
-			end
-			
-			local SWDMoving = A.GetToggle(2, "SWDMoving")
-			if A.ShadowWordDeath:IsReady(unitID) and SWDMoving and isMoving and Unit(player):Health() > SWDeathDmgCalc() then
-				return A.ShadowWordDeath:Show(icon)
-			end
-			
-			local DPMoving = A.GetToggle(2, "DPMoving")		
-			if A.DevouringPlague:IsReady(unitID) and DPMoving then
-				return A.ShadowWeaving:Show(icon)
-			end		
-		end
+	
 	end
     
  --------------------------------------------------------------------------------------------------    
@@ -849,6 +929,8 @@ A[3] = function(icon, isMulti)
         local unitGUID = UnitGUID(unitID)    	
 		local DungeonGroup = TeamCache.Friendly.Size >= 2 and TeamCache.Friendly.Size <= 5
 		local RaidGroup = TeamCache.Friendly.Size >= 5 	
+		
+		local localizedClass, englishClass, classIndex = UnitClass(unitID)		
 			
 		local Cleanse = A.GetToggle(2, "Cleanse")
 		local GreaterHealHP = A.GetToggle(2, "GreaterHealHP")
@@ -874,7 +956,7 @@ A[3] = function(icon, isMulti)
 		end]]
 
 		--Emergency Healing
-		local Emergency = Unit(unitID):HealthPercent() > 0 and Unit(unitID):TimeToDie() <= (A.GetGCD() + A.GetCurrentGCD() + (TMW.UPD_INTV or 0) + GetPing()) and Unit(unitID):HealthPercentLosePerSecond() > (Unit(unitID):HealthPercentGainPerSecond() + Unit(unitID):Health())	
+		local Emergency = Unit(unitID):HealthPercent() > 0 and Unit(unitID):HealthPercent() < 25 and inCombat
 		if Emergency then
 			if A.GuardianSpirit:IsReady(unitID) then
 				return A.GuardianSpirit:Show(icon)
@@ -882,21 +964,14 @@ A[3] = function(icon, isMulti)
 			if A.CircleofHealing:IsReady(unitID) then
 				return A.CircleofHealing:Show(icon)
 			end
-			if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HasBuffs(A.WeakenedSoul.ID) == 0 then
+			if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
 				return A.PowerWordShield:Show(icon)
 			end
 			if A.PainSuppression:IsReady(unitID) then
 				return A.PainSuppression:Show(icon)
 			end
-			if A.FlashHeal:IsReady(unitID) then
+			if A.FlashHeal:IsReady(unitID) and not isMoving then
 				return A.FlashHeal:Show(icon)
-			end
-		end
-
-		local localizedClass, englishClass, classIndex = UnitClass(unitID)
-		if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(unitID):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
-			--if englishClass == "WARRIOR" or Unit(unitID):HasBuffs(A.BearForm.ID) > 0 or Unit(unitID):HasBuffs(A.DireBearForm.ID) > 0 then return
-				if englishClass ~= "WARRIOR" then return A.PowerWordShield:Show(icon)
 			end
 		end
 
@@ -917,7 +992,7 @@ A[3] = function(icon, isMulti)
 		end
 
 		--Penance
-		if A.Penance:IsReady(unitID) and canCast then
+		if A.Penance:IsReady(unitID) and canCast and not isMoving then
 			if PenanceHP >= 100 then
 				if Unit(unitID):HealthDeficit() >= HealCalc(A.Penance) then
 					return A.Penance:Show(icon)
@@ -988,10 +1063,11 @@ A[3] = function(icon, isMulti)
 		end
 
 		--Need to PWS blanket. Player can use macro to block PWS when wanting to mana save? Need brainstorm here.
-		local BlanketPWS = A.GetToggle(2, "BlanketPWS")		
+		local BlanketPWS = A.GetToggle(2, "BlanketPWS")				
 		if A.PowerWordShield:IsReady(unitID) and BlanketPWS and A.SoulWarding:IsTalentLearned() then
 			for i = 1, #getmembersAll do 
-				if Unit(getmembersAll[i].Unit):IsPlayer() and not IsUnitEnemy(getmembersAll[i].Unit) and Unit(getmembersAll[i].Unit):GetRange() <= 40 and Unit(getmembersAll[i].Unit):HasBuffs(A.PowerWordShield.ID, true) == 0  and Unit(getmembersAll[i].Unit):HasDeBuffs(A.WeakenedSoul.ID, true) == 0 then 
+				local _, blanketClass, _ = UnitClass(getmembersAll[i].Unit)			
+				if Unit(getmembersAll[i].Unit):IsPlayer() and not IsUnitEnemy(getmembersAll[i].Unit) and Unit(getmembersAll[i].Unit):GetRange() <= 40 and Unit(getmembersAll[i].Unit):HasBuffs(A.PowerWordShield.ID, true) == 0  and Unit(getmembersAll[i].Unit):HasDeBuffs(A.WeakenedSoul.ID, true) == 0 and blanketClass ~= "WARRIOR" then 
 					if UnitGUID(getmembersAll[i].Unit) ~= currGUID then
 						HealingEngine.SetTarget(getmembersAll[i].Unit, 0.3) 
 					end    
@@ -999,13 +1075,15 @@ A[3] = function(icon, isMulti)
 			end 
 			if Unit(unitID):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(unitID):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
 				--if englishClass == "WARRIOR" or Unit(unitID):HasBuffs(A.BearForm.ID) > 0 or Unit(unitID):HasBuffs(A.DireBearForm.ID) > 0 then return
-					if englishClass ~= "WARRIOR" then return A.PowerWordShield:Show(icon)
+				if englishClass ~= "WARRIOR" and Unit(unitID):HasBuffs(A.DireBearForm.ID) == 0 and Unit(unitID):HasBuffs(A.BearForm.ID) == 0 then 
+					return A.PowerWordShield:Show(icon)
 				end
 			end
 		end
 
 		--PrayerofMending
-		if A.PrayerofMending:IsReady(unitID) and (Unit(unitID):IsTanking() or Unit(unitID):IsTank()) and HealingEngine.GetBuffsCount(A.PrayerofMending.ID, 0, player) == 0 then 
+		local status = UnitThreatSituation(unitID)		
+		if A.PrayerofMending:IsReady(unitID) and (Unit(unitID):IsTanking() or Unit(unitID):IsTank() or status == 3) and HealingEngine.GetBuffsCount(A.PrayerofMending.ID, 0, player) == 0 then 
 			return A.PrayerofMending:Show(icon)
 		end
 
@@ -1045,6 +1123,12 @@ A[3] = function(icon, isMulti)
 				end
 			end
 		end		
+
+		if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(unitID):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
+			if englishClass ~= "WARRIOR" and Unit(unitID):HasBuffs(A.BearForm.ID) == 0 and Unit(unitID):HasBuffs(A.DireBearForm.ID) == 0 then 
+				return A.PowerWordShield:Show(icon)
+			end
+		end		
 		
 	end
 
@@ -1082,10 +1166,6 @@ A[5] = nil
 local function PartyRotation(icon, unitID)
     if A.IsInPvP and (A.Zone == "pvp" or A.Zone == "arena") and not Player:IsStealthed() and not Player:IsMounted() then 
 
-		if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(unitID):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
-			return A.PowerWordShield
-		end
-		
 		if A.DispelMagic:IsReady(unitID, true) then 
 			if (AuraIsValid(unitID, "UseDispel", "Magic") or AuraIsValid(unitID, "UsePurge", "PurgeFriendly")) then 
 				return A.DispelMagic
@@ -1094,23 +1174,6 @@ local function PartyRotation(icon, unitID)
 		if A.AbolishDisease:IsReady(unitID, true) then
 			if AuraIsValid(unitID, "UseDispel", "Disease") then
 				return A.AbolishDisease
-			end
-		end
-		
-		if A.Renew:IsReady(unitID) and Unit(unitID):HealthPercent() <= 85 and Unit(unitID):HasBuffs(A.Renew.ID) == 0 then
-			return A.Renew
-		end
-		
-		if A.PrayerofMending:IsReady(unitID) and HealingEngine.GetBuffsCount(A.PrayerofMending.ID, 0, player) == 0 then
-			return A.PrayerofMending
-		end
-		
-		if A.DivineHymn:IsReady(player) then
-			if Unit("party1" and "party2" and "party3"):HealthPercent() <= 60 then  -- check enemy interrupt CD list
-				if A.InnerFocus:IsReady(unitID) then
-					return A.InnerFocus
-				end
-				return A.DivineHymn
 			end
 		end
 	end
@@ -1125,25 +1188,13 @@ local function ArenaRotation(icon, unitID)
 		--Disarm targets
 		if A.PsychicHorror:IsReady(unitID) then 
 			if Unit(unitID):HasBuffs(A.Bladestorm.ID or A.KillingSpree.ID) > 0 or (Unit(unitID):Class("Hunter") and Unit("party1" or "party2" or "party3"):HealthPercent() <= 50) then
-				return A.PsychicHorror:Show(icon)
+				return A.PsychicHorror
 			end
 		end
-		
-		--Catch Rogues
-		if Unit(unitID):HasBuffs(A.CloakofShadows.ID) > 0 then
-			if A.Shadowfiend:IsReady(player) then
-				return A.Shadowfiend:Show(icon)
-			end
-		end
-		
-		--SWD on Poly
-		if A.ShadowWordDeath:IsReady(unitID) and Unit(unitID):IsCasting() == A.Polymorph.Info() and Unit(unitID):IsCastingRemains() <= A.GetLatency() + 0.5 then
-			return A.ShadowWordDeath:Show(icon)
-		end	
 		
 	end
 end
-
+--[[
 A[6] = function(icon)
     local Party = PartyRotation("party1") 
     if Party then 
@@ -1169,4 +1220,4 @@ A[8] = function(icon)
     end 
     
     return ArenaRotation(icon, "arena3")
-end
+end]]
