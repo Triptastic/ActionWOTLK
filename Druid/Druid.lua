@@ -487,7 +487,14 @@ A[3] = function(icon, isMulti)
 	if not A.Berserk:IsReady(player) or not A.TigersFury:IsReady(player) then
 		Temp.OpenerRotation = false
 	end
+
+	if A.MarkoftheWild:IsReady(target) and Unit(target):HasBuffs(A.MarkoftheWild.ID) == 0 and Unit(target):HasBuffs(A.GiftoftheWild.ID) == 0 and not inCombat and not Unit(target):IsNPC() and not Unit(target):IsTotem() then
+		return A.MarkoftheWild:Show(icon)
+	end	
 	
+	if A.Thorns:IsReady(target) and Unit(target):HasBuffs(A.Thorns.ID) == 0 and not inCombat and not Unit(target):IsNPC() and not Unit(target):IsTotem() then
+		return A.Thorns:Show(icon)
+	end		
     
     ------------------------------------------------------
     ---------------- ENEMY UNIT ROTATION -----------------
