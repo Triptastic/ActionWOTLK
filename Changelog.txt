@@ -1,5 +1,19 @@
 Changelog
 
+18 September 2022
+Druid:
+Added auto MotW and Thorns.
+
+Warlock:
+Fixed Demon Skin check.
+Fixed rotation working at low levels.
+
+Priest:
+Fixed StopCast on Mind Flay if don't have mana for other abilities.
+Fixed PWShield blanket button.
+PvP updates (mostly Disc stuff at the moment).
+
+
 15 Sept 2022
 Hunter:
 Added Readiness with Rapid Fire with an option to use it with Misdirection within the first 10 seconds of combat. 
