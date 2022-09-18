@@ -1,5 +1,9 @@
 Changelog
 
+19 September 2022
+Rogue:
+Fixed error with Gouge.
+
 18 September 2022
 Druid:
 Added auto MotW and Thorns.
