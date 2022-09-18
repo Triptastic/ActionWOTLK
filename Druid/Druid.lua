@@ -713,7 +713,11 @@ A[3] = function(icon, isMulti)
 				if A.Shred:IsReady(unitID) and not Pooling and A.Shred:AbsentImun(unitID, Temp.TotalAndPhys) and Player:IsBehind() then
 					return A.Shred:Show(icon)
 				end
-				--Shred
+				--Mangle spam
+				if A.MangleCat:IsReady(unitID) and not Pooling and A.MangleCat:AbsentImun(unitID, Temp.TotalAndPhys) then
+					return A.MangleCat:Show(icon)
+				end	
+				--Claw if nothing else
 				if A.Claw:IsReady(unitID) and not Pooling and A.Claw:AbsentImun(unitID, Temp.TotalAndPhys) then
 					return A.Claw:Show(icon)
 				end				
