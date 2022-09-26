@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.3 (21 September 2022)",
+    DateTime = "v1.2 (15 September 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -186,48 +186,6 @@ A.Data.ProfileUI = {
                     TT = { 
                         ANY = "Mana (%) to use Evocation. Will wait until burned all stacks of Arcane Blast.", 
                     },                     
-                    M = {},
-                },				
-			},
-			{
-				{ -- AutoInterrupt
-                    E = "Checkbox", 
-                    DB = "AutoInterrupt",
-                    DBV = true,
-                    L = { 
-                        ANY = "Automatic Interrupt",
-                    },
-                    TT = { 
-                        ANY = "Automatic Interrupt in main rotation. Turn off if you want to use AntiFake or Secondary Rotation instead.", 
-                    }, 
-                    M = {},
-                },
-				{ -- InterruptRotation
-                    E = "Dropdown",                                                         
-                    OT = {
-						{ text = "Target", value = "Target" },
-						{ text = "Focus", value = "Focus" },			
-                    },
-                    DB = "InterruptRotation",
-                    DBV = "Focus",
-                    L = { 
-                        ANY = "Interrupt Rotation",
-                    }, 
-                    TT = { 
-                        ANY = "Utilises the Secondary Rotation bind to use CC/interrupts on either focus or target, depending on your choice here. IF YOU CHOOSE FOCUS, YOU NEED TO SET YOUR REGULAR TARGET BINDS TO FOCUS MACROS INSTEAD: /cast [@focus,harm][]Deep Freeze", 
-                    }, 
-                    M = {},
-                },	
-				{ -- AutoInterrupt
-                    E = "Checkbox", 
-                    DB = "BlinkStun",
-                    DBV = true,
-                    L = { 
-                        ANY = "Blink when stunned",
-                    },
-                    TT = { 
-                        ANY = "Attempt to Blink when stunned. Won't work 100% of the time.", 
-                    }, 
                     M = {},
                 },				
 			},			

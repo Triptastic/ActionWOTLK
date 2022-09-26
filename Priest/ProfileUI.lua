@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.6 (21 September 2022)",
+    DateTime = "v1.5 (18 September 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -198,7 +198,7 @@ A.Data.ProfileUI = {
                 },
             },
 			{
-				--[[{ -- HealingStyle
+				{ -- HealingStyle
                     E = "Dropdown",                                                         
                     OT = {
 						{ text = "Target", value = "Target" },
@@ -213,7 +213,7 @@ A.Data.ProfileUI = {
                         ANY = "Pick how you would like to use the healing rotation style, whether you want to automatically change your target or automatically change your focus. If you set this to focus, it is important that you change all of your heal abilities to '/cast [@focus] SpellName'. You must also change all of your Target Member macros to /focus instead of /target. You may need an updated HealingEngine.lua from Trip to get this to work (message in Discord).", 
                     }, 
                     M = {},
-                },]]
+                },
                 { -- DPSHEAL
                     E = "Slider",                                                     
                     MIN = 0, 
@@ -414,8 +414,6 @@ A.Data.ProfileUI = {
                     },                     
                     M = {},
                 },
-			},
-			{
 				{ -- BlanketPWS
                     E = "Checkbox", 
                     DB = "BlanketPWS",
@@ -426,21 +424,6 @@ A.Data.ProfileUI = {
                     TT = { 
                         ANY = "Spread Power Word: Shield over entire party/raid when able. Only works with Soul Warding talent.",
                     }, 
-                    M = {},
-                },
-                { -- PWSHealth
-                    E = "Slider",                                                     
-                    MIN = 0, 
-                    MAX = 100,                            
-                    DB = "PWSHealth",
-                    DBV = 100,
-                    ONOFF = false,
-                    L = { 
-                        ANY = "Power Word: Shield HP (%)",
-                    },
-                    TT = { 
-                        ANY = "HP (%) to use Power Word: Shield.", 
-                    },                     
                     M = {},
                 },				
 			},

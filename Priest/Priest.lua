@@ -674,10 +674,8 @@ A[3] = function(icon, isMulti)
 		return A.DivineSpirit:Show(icon)
 	end		
 	
-	if A.Fade:IsReady(player) then
-		if (A.ImprovedShadowform:IsTalentLearned() and Unit(player):HasBuffs(A.Shadowform.ID) > 0 and (LoC:Get("STUN") > 1 or (not inRange and (LoC:Get("ROOT") > 1 or (LoC:Get("SNARE") > 0 and Unit(player):GetMaxSpeed() <= 50)))) and Unit(player):HasDeBuffs(A.DazeBehind.ID) == 0) or (Unit(player):InParty() and (Unit(unitID):IsTanking() or Unit(unitID):IsTank() or status == 3)) then
-			return A.Fade:Show(icon)
-		end
+	if A.Fade:IsReady(player) and A.ImprovedShadowform:IsTalentLearned() and Unit(player):HasBuffs(A.Shadowform.ID) > 0 and (LoC:Get("STUN") > 1 or (not inRange and (LoC:Get("ROOT") > 1 or (LoC:Get("SNARE") > 0 and Unit(player):GetMaxSpeed() <= 50)))) and Unit(player):HasDeBuffs(A.DazeBehind.ID) == 0 then
+		return A.Fade:Show(icon)
 	end
 	
 	if A.WilltoSurvive:IsReady(player) and LoC:Get("STUN") > 1 then
@@ -972,9 +970,6 @@ A[3] = function(icon, isMulti)
 			if A.PainSuppression:IsReady(unitID) then
 				return A.PainSuppression:Show(icon)
 			end
-			if A.Penance:IsReady(unitID) and not isMoving then
-				return A.Penance:Show(icon)
-			end
 			if A.FlashHeal:IsReady(unitID) and not isMoving then
 				return A.FlashHeal:Show(icon)
 			end
@@ -1129,8 +1124,7 @@ A[3] = function(icon, isMulti)
 			end
 		end		
 
-		local PWSHealth = A.GetToggle(2, "PWSHealth")
-		if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HealthPercent() <= PWSHealth and Unit(unitID):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(unitID):HasDeBuffs(A.WeakenedSoul.ID) == 0 and (Unit(unitID):IsTanking() or Unit(unitID):IsTank() or status == 3) then
+		if A.PowerWordShield:IsReady(unitID) and Unit(unitID):HasBuffs(A.PowerWordShield.ID) == 0 and Unit(unitID):HasDeBuffs(A.WeakenedSoul.ID) == 0 then
 			if englishClass ~= "WARRIOR" and Unit(unitID):HasBuffs(A.BearForm.ID) == 0 and Unit(unitID):HasBuffs(A.DireBearForm.ID) == 0 then 
 				return A.PowerWordShield:Show(icon)
 			end
@@ -1139,16 +1133,16 @@ A[3] = function(icon, isMulti)
 	end
 
 ---------------------------------------------------------------------------------------------------
-	--local HealingStyle = A.GetToggle(2, "HealingStyle")
-
-	if A.IsUnitFriendly(target) then 
-		unitID = target 
+	local HealingStyle = A.GetToggle(2, "HealingStyle")
+	
+	if A.IsUnitFriendly(focus) then 
+		unitID = focus 
 		if HealingRotation(unitID) then 
 			return true 
 		end 
-	end	
-	if A.IsUnitFriendly(focus) then 
-		unitID = focus 
+	end
+	if A.IsUnitFriendly(target) then 
+		unitID = target 
 		if HealingRotation(unitID) then 
 			return true 
 		end 
@@ -1159,12 +1153,7 @@ A[3] = function(icon, isMulti)
 			return true 
 		end 
 	end
-	if A.IsUnitEnemy(targettarget) then 
-		unitID = targettarget 
-		if EnemyRotation(unitID) then 
-			return true 
-		end 
-	end	   
+	   
 end
 
 A[1] = nil
@@ -1173,7 +1162,7 @@ A[4] = nil
 
 A[5] = nil
 
---[[
+
 local function PartyRotation(icon, unitID)
     if A.IsInPvP and (A.Zone == "pvp" or A.Zone == "arena") and not Player:IsStealthed() and not Player:IsMounted() then 
 
@@ -1205,7 +1194,7 @@ local function ArenaRotation(icon, unitID)
 		
 	end
 end
-
+--[[
 A[6] = function(icon)
     local Party = PartyRotation("party1") 
     if Party then 
