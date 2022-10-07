@@ -220,7 +220,21 @@ A.Data.ProfileUI = {
                     }, 
                     M = {},
                 },
-			},	
+			},
+			{
+				{ -- FBBerserk
+                    E = "Checkbox", 
+                    DB = "FBBerserk",
+                    DBV = true,
+                    L = { 
+                        ANY = "Ferocious Bite with Berserk", 
+                    }, 
+                    TT = { 
+                        ANY = "Uses Ferocious Bite while Berserk is active, bypassing bleeds.", 
+                    }, 
+                    M = {},
+                },
+			},
 			{ -- RESTO HEADER
                 {
                     E = "Header",

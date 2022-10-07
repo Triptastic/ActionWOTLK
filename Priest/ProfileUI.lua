@@ -60,18 +60,34 @@ A.Data.ProfileUI = {
 						{ text = "Healing Potion", value = "HealingPotion" },
 						{ text = "Limited Invulnerability", value = "LimitedInvulnerabilityPotion" },
 						{ text = "Living Action", value = "LivingActionPotion" },
-						{ text = "Restorative", value = "RestorativePotion" },						
+						{ text = "Restorative", value = "RestorativePotion" },
+						{ text = "Mana Potion", value = "ManaPotion" },							
                     },
                     DB = "PotionController",
-                    DBV = "HealingPotion",
+                    DBV = "ManaPotion",
                     L = { 
                         ANY = "Potion Usage",
                     }, 
                     TT = { 
-                        ANY = "Pick what potion you would like to use. Use slider on the first page of /action to set health value.", 
+                        ANY = "Pick what potion you would like to use. Use slider on the first page of /action to set health value or the slider next to this box for mana value.", 
                     }, 
                     M = {},
-                },						
+                },	
+                { -- ManaPotion
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "ManaPotionMP",
+                    DBV = 40,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Mana (%) for Mana Potion",
+                    },
+                    TT = { 
+                        ANY = "Mana (%) to use Mana Potion. CURRENTLY ONLY WORKS WITH RUNIC MANA POTION (LEVEL 70).", 
+                    },                     
+                    M = {},
+                },				
 			},
 			{
                 { -- HealthStone

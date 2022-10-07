@@ -180,7 +180,7 @@ Action[Action.PlayerClass]                     = {
 
 local A                                     = setmetatable(Action[Action.PlayerClass], { __index = Action })
 Player:AddBag("SOUL_SHARD",     { itemID = A.SoulShard.ID})
-Pet:AddActionsSpells(A.PlayerClass, { A.Torment, A.LashofPain, A.SpellLock, A.DevourMagic, A.FireShield, A.Seduction, }) --Need to add A.ShadowBite, A.Cleave when lib updated for WOTLK
+Pet:AddActionsSpells(A.PlayerClass, { A.Torment, A.LashofPain, A.SpellLock, A.DevourMagic, A.FireShield, A.Seduction, A.ShadowBite, A.Cleave}) --Need to add A.ShadowBite, A.Cleave when lib updated for WOTLK
 Pet:AddTrackers(A.PlayerClass)
 
 local player = "player"
@@ -257,12 +257,12 @@ Interrupts = A.MakeFunctionCachedDynamic(Interrupts)
 
 local function CastCurse()
 
-	local CurseofAgonyDebuff = Unit(unitID):HasDeBuffs(980 or 1014 or 6217 or 11711 or 11712 or 11713 or 27218 or 47863 or 47864) > 0
-	local CurseoftheElementsDebuff = Unit(unitID):HasDeBuffs(1490 or 11721 or 11722 or 27228 or 47865) > 0
-	local CurseofTonguesDebuff = Unit(unitID):HasDeBuffs(1714 or 11719) > 0
-	local CurseofWeaknessDebuff = Unit(unitID):HasDeBuffs(702 or 1108 or 6205 or 7646 or 11707 or 11708 or 27224 or 30909 or 50511) > 0 
-	local CurseofDoomDebuff = Unit(unitID):HasDeBuffs(603 or 30910 or 47867) > 0
-	local CurseofExhaustionDebuff = Unit(unitID):HasDeBuffs(A.CurseofExhaustion) > 0	
+	local CurseofAgonyDebuff = Unit(unitID):HasDeBuffs(A.CurseofAgony.ID) > 0
+	local CurseoftheElementsDebuff = Unit(unitID):HasDeBuffs(A.CurseoftheElements.ID) > 0
+	local CurseofTonguesDebuff = Unit(unitID):HasDeBuffs(A.CurseofTongues.ID) > 0
+	local CurseofWeaknessDebuff = Unit(unitID):HasDeBuffs(A.CurseofWeakness.ID) > 0 
+	local CurseofDoomDebuff = Unit(unitID):HasDeBuffs(A.CurseofDoom.ID) > 0
+	local CurseofExhaustionDebuff = Unit(unitID):HasDeBuffs(A.CurseofExhaustion.ID) > 0	
 
 	local CurseChoice = A.GetToggle(2, "CurseChoice")
 	if CurseChoice == "Agony" then
@@ -349,11 +349,11 @@ local function CanDispel(unitID, isFriendly)
     -- Note: Only [3] APL
     if A.DevourMagic:IsReady(unitID, true) and Pet:IsInRange(A.DevourMagic, unitID) then 
         if isFriendly then 
-            if (AuraIsValid(unitID, "UseDispel", "Magic") or AuraIsValid(unitID, "UsePurge", "PurgeFriendly")) and Unit(pet):InCC() == 0 then 
+            if (AuraIsValid(unitID, "UseDispel", "Magic") or AuraIsValid(unitID, "UsePurge", "PurgeFriendly")) then 
                 return A.DevourMagic
             end 
         else 
-            if (AuraIsValid(unitID, "UsePurge", "PurgeHigh") or AuraIsValid(unitID, "UsePurge", "PurgeLow")) and Unit(pet):InCC() == 0 then 
+            if (AuraIsValid(unitID, "UsePurge", "PurgeHigh") or AuraIsValid(unitID, "UsePurge", "PurgeLow")) then 
                 return A.DevourMagic
             end 
         end 
@@ -365,11 +365,11 @@ local function CanInterrupt(unitID)
     -- Note: Only [3] APL
 	local useKick, useCC, _, notInterruptable, castRemainsTime = InterruptIsValid(unitID, nil, nil, false)
 	if (useKick or useCC) and castRemainsTime >= GetLatency() then 
-		if useKick and not notInterruptable and Pet:IsInRange(A.SpellLock, unitID) and A.SpellLock:IsReady(unitID, true) and A.SpellLock:AbsentImun(unitID, Temp.AuraForInterrupt) and Unit(pet):InCC() == 0 then 
+		if useKick and not notInterruptable and Pet:IsInRange(A.SpellLock, unitID) and A.SpellLock:IsReady(unitID, true) and A.SpellLock:AbsentImun(unitID, Temp.AuraForInterrupt) then 
 			return A.SpellLock   
 		end 
 		
-		if useCC and Unit(unitID):IsHumanoid() and castRemainsTime > A.Seduction:GetSpellCastTimeCache() + GetPing() and Pet:IsInRange(A.Seduction, unitID) and A.Seduction:IsReady(unitID, true) and A.Seduction:AbsentImun(unitID, Temp.AuraForCC) and Unit(unitID):IsControlAble("fear") and Unit(pet):InCC() == 0 then 
+		if useCC and Unit(unitID):IsHumanoid() and castRemainsTime > A.Seduction:GetSpellCastTimeCache() + GetPing() and Pet:IsInRange(A.Seduction, unitID) and A.Seduction:IsReady(unitID, true) and A.Seduction:AbsentImun(unitID, Temp.AuraForCC) and Unit(unitID):IsControlAble("fear") then 
 			return A.Seduction        
 		end 
 	end 
@@ -378,7 +378,7 @@ end
 local function CanFear(unitID) 
     -- @return boolean 
     -- Note: Only [3] APL
-    if GetActiveDoTsCounter((A.Fear:Info())) == 0 and not A.Fear:IsSpellLastGCD() and not A.Fear:IsSpellInFlight() and A.Fear:IsLatenced() and A.Fear:IsReadyByPassCastGCD(unitID) and A.Fear:AbsentImun(unitID, Temp.AuraForFear) and not Unit(unitID):IsTotem() and Unit(unitID):IsControlAble("fear") and Unit(unitID):InCC() == 0 then 
+    if not A.Fear:IsSpellLastGCD() and not A.Fear:IsSpellInFlight() and A.Fear:IsLatenced() and A.Fear:IsReadyByPassCastGCD(unitID) and A.Fear:AbsentImun(unitID, Temp.AuraForFear) and not Unit(unitID):IsTotem() and Unit(unitID):IsControlAble("fear") then 
         return true 
     end 
 end 
@@ -541,9 +541,9 @@ A[3] = function(icon, isMulti)
         local npcID = select(6, Unit(unitID):InfoGUID())		
 		local SpecSelect = A.GetToggle(2, "SpecSelect")
     
-		local CorruptionActive = Unit(unitID):HasDeBuffs(172 or 6222 or 6223 or 7648 or 11671 or 11672 or 25311 or 27216 or 47812 or 47813, true) > 0
-		local ImmolateDown = Unit(unitID):HasDeBuffs(348 or 707 or 1094 or 2941 or 11665 or 11667 or 11668 or 25309 or 27215 or 47810, true) <= A.Immolate:GetSpellCastTime()
-		local UARefresh = Player:GetDeBuffsUnitCount(30108 and 30404 and 30405 and 47841 and 47843) < 1 
+		local CorruptionActive = Unit(unitID):HasDeBuffs(A.Corruption.ID, true) > 0
+		local ImmolateDown = Unit(unitID):HasDeBuffs(A.Immolate.ID, true) <= A.Immolate:GetSpellCastTime()
+		local UARefresh = Player:GetDeBuffsUnitCount(A.UnstableAffliction.ID) < 1 
     
 		local DrainLifeHP = A.GetToggle(2, "DrainLifeHP")
 		if A.DrainLife:IsReady(unitID) and Unit(player):HealthPercent() <= DrainLifeHP and canCast and not isMoving then
@@ -660,7 +660,7 @@ A[3] = function(icon, isMulti)
 				end
 			end		
 			
-			if A.DemonicEmpowerment:IsReadyByPassCastGCD(player) then --and Pet:IsInRange(A.Cleave.ID, unitID) once Cleave is added to PetLib. 
+			if A.DemonicEmpowerment:IsReadyByPassCastGCD(player) and Pet:IsInRange(A.Cleave.ID, unitID) then
 				return A.DemonicEmpowerment:Show(icon)
 			end
 			

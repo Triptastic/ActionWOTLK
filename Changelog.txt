@@ -1,8 +1,92 @@
 Changelog
+8 October 2022
+Priest (v2.2):
+Fixed Psychic Scream as healer in PvP.
+Fixed Will of the Forsaken.
+Changed priority of PW:Shield blanket.
+Fixed a GUID check for PW:Shield blanket.
+Added a small icon next to the main icon to show PW:Shield blanket toggle.
+Fixed a unitID check for Spell Reflect in PvP.
+Added Runic Mana Potion usage.
+Fixed a Fade aggro check.
+
+Still seem to be having some issues with PW:Shield blanket, WIP.
+
+Druid (v1.8):
+Fixed Tiger's Fury melee check.
+Added a checkbox to force FB during Berserk.
+Added a manual-selection timer for Rip/SR to use FB.
+Fixed a block check for Bash when blocking it in the Action tab.
+
+
+
+26 September 2022
+Druid:
+Bear Weaving fixed.
+Added interrupts with auto-shifting, Feral Charge, Bash (needs fixed macros).
+Added Global Damage modifier to adjust Ferocious Bite timings.
+Added Rip Combo Point slider.
+Added option to choose stealth opener.
+
+
+Feral Charge Macro:
+#showtooltip
+/cast [noform:1/3] !Dire Bear Form
+/cast [form:3] Feral Charge - Cat
+/cast [form:1] Feral Charge - Bear
+
+Bash Macro:
+#showtooltip Bash
+/cast [noform:1] !Dire Bear Form
+/cast Bash
+
+
+26 September 2022
+Mage:
+Added AntiFake CC (Poly) and Interrupt (Counterspell), target and focus.
+Added Secondary Rotation binding for interrupts and CCs. 
+Swapped Fireball and Scorch when in PvP as Fire Mage.
+Added Spell Reflect check - Poly to heal self if needed, break with Ice Lance or Fire Blast.
+Fixed Will of the Forsaken
+Added target checks to Fire/Frost Ward.
+Added all spell ranks to important spells for Fire/Frost Ward.
+Added Unbreakable checks.
+Added Mana Shield if Ice Barrier on CD and Mana above slider %.
+Added new checks for Frost Nova.
+Added instant blink to break stun.
+Added permanent slow with R1 Frostbolt - uses Slow Fall bind.
+Added Decurse Self, Party 1, 2, 3 and Spellsteal Arena 1, 2, 3.
+Counterspell Heal List Arena 1, 2, 3.
+Added totem stomping (make sure nameplates are turned on for totems!)
+
+Priest:
+Code clean up! Seperated the specs more clearly within the code. 
+Added AntiFake CC (Scream/Horror) and Interrupt (Silence), target and focus.
+Added totem stomping (make sure nameplates are turned on for totems!)
+Added Abolish Disease Self, Party 1, 2, 3, and Dispel Magic Self, Party 1, 2, 3.
+Added Silence Heal List Arena 1, 2, 3.
+Added Psychic Horror on Target, Arena 1, 2, 3 when they do something scary.
+Added immunity checks to PvP spells. 
+Added Dispel Magic enemy target. Add custom dispels with Purge High in Aura tab (make sure to select PvE or PvP!).
+Added Shadow Word: Death on Polymorph casts.
+Added focus healing for Shadow Priest if your focus target is below 35% HP.
+
+Druid:
+Fixed a range check that wasn't working at low levels.
+Fixed priority of Thorns/MotW.
+Bear Weaving for feral druids if you have Furor talent 5/5.
+Added in focus healing option.
+
+
+
 
 19 September 2022
 Rogue:
 Fixed error with Gouge.
+
+Druid:
+Added Mangle as filler instead of Claw when in front of target (if learned).
+
 
 18 September 2022
 Druid:
