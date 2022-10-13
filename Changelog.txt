@@ -1,4 +1,20 @@
 Changelog
+11 October 2022
+Priest (v2.4)
+Fixed a bug with Prayer of Healing in party.
+
+
+10 October 2022
+Priest (v2.3):
+Fixed a bug with using no damage abilities when solo as a healer.
+Cleaned up ProfileUI.
+Added more trinket customisation options.
+Added immune checks for healer DPS. 
+Added mechanical enemy check for Devouring Plague immunities. 
+
+Power Word: Shield blanket still not working as intended.
+
+
 8 October 2022
 Priest (v2.2):
 Fixed Psychic Scream as healer in PvP.
