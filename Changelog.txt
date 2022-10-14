@@ -1,7 +1,13 @@
 Changelog
-11 October 2022
+15 October 2022
+Druid (v1.9):
+Fixed checking Trauma debuff with Mangle.
+
 Priest (v2.4)
 Fixed a bug with Prayer of Healing in party.
+Added a check for Serendipity stacks with Prayer of Healing.
+Potentially improved PWShield blanket.
+Added Necrotic Aura healing debuff checks for Loatheb.
 
 
 10 October 2022
