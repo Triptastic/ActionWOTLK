@@ -1,5 +1,8 @@
 Changelog
 15 October 2022
+General:
+Swapping Obfuscation to Minifying for speed/ease. 
+
 Druid (v1.9):
 Fixed checking Trauma debuff with Mangle.
 
