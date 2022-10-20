@@ -2,6 +2,8 @@
 --##### TRIP'S WOTLK WARLOCK #####
 --################################
 
+--BORROWED ICONS: Rank 1 Life Tap = SenseDemons
+
 local _G, setmetatable, pairs, ipairs, select, error, math = 
 _G, setmetatable, pairs, ipairs, select, error, math 
 
@@ -156,10 +158,10 @@ Action[Action.PlayerClass]                     = {
 
 	
 	--Talents
-	ImprovedShadowBolt							= Create({ Type = "Spell", ID = 17803      }),
-	ShadowMastery								= Create({ Type = "Spell", ID = 17800      }),
-	MoltenCore									= Create({ Type = "Spell", ID = 71165      }),
-	Decimation									= Create({ Type = "Spell", ID = 63167      }),	
+	ImprovedShadowBolt							= Create({ Type = "Spell", ID = 17803, Hidden = true      }),
+	ShadowMastery								= Create({ Type = "Spell", ID = 17800, Hidden = true       }),
+	MoltenCore									= Create({ Type = "Spell", ID = 71165, Hidden = true       }),
+	Decimation									= Create({ Type = "Spell", ID = 63167, Hidden = true       }),	
 		
 	--Pet Spells
 	LashofPain									= Create({ Type = "Spell", ID = 7814, useMaxRank = true      }),
@@ -175,7 +177,8 @@ Action[Action.PlayerClass]                     = {
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
     Bloodlust									= Create({ Type = "Spell", ID = 2825        }),
     Drums										= Create({ Type = "Spell", ID = 29529        }),
-    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),  
+    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),
+	SpiritsoftheDamned							= Create({ Type = "Spell", ID = 61082, Hidden = true       }),	
 }
 
 local A                                     = setmetatable(Action[Action.PlayerClass], { __index = Action })
@@ -257,7 +260,7 @@ Interrupts = A.MakeFunctionCachedDynamic(Interrupts)
 
 local function CastCurse()
 
-	local CurseofAgonyDebuff = Unit(unitID):HasDeBuffs(A.CurseofAgony.ID) > 0
+	local CurseofAgonyDebuff = Unit(unitID):HasDeBuffs(A.CurseofAgony.ID, true) > 0
 	local CurseoftheElementsDebuff = Unit(unitID):HasDeBuffs(A.CurseoftheElements.ID) > 0
 	local CurseofTonguesDebuff = Unit(unitID):HasDeBuffs(A.CurseofTongues.ID) > 0
 	local CurseofWeaknessDebuff = Unit(unitID):HasDeBuffs(A.CurseofWeakness.ID) > 0 
@@ -542,7 +545,7 @@ A[3] = function(icon, isMulti)
 		local SpecSelect = A.GetToggle(2, "SpecSelect")
     
 		local CorruptionActive = Unit(unitID):HasDeBuffs(A.Corruption.ID, true) > 0
-		local ImmolateDown = Unit(unitID):HasDeBuffs(A.Immolate.ID, true) <= A.Immolate:GetSpellCastTime()
+		local ImmolateDown = Unit(unitID):HasDeBuffs(A.Immolate.ID, true) == 0
 		local UARefresh = Player:GetDeBuffsUnitCount(A.UnstableAffliction.ID) < 1 
     
 		local DrainLifeHP = A.GetToggle(2, "DrainLifeHP")
@@ -554,6 +557,13 @@ A[3] = function(icon, isMulti)
 		local LifeTapHP = A.GetToggle(2, "LifeTapHP")		
 		if A.LifeTap:IsReady(player) and Player:ManaPercentage() <= LifeTapMana and Unit(player):HealthPercent() >= LifeTapHP then
 			return A.LifeTap:Show(icon)
+		end
+		
+		local SpiritsoftheDamnedCheck = A.GetToggle(2, "SpiritsoftheDamned")
+		if SpiritsoftheDamnedCheck then
+			if A.LifeTap:IsReady(player) and Unit(player):HasBuffs(A.SpiritsoftheDamned.ID) == 0 then
+				return A.SenseDemons:Show(icon)
+			end
 		end
 		
 		local Soulshardcap = A.GetToggle(2, "Soulshardcap")

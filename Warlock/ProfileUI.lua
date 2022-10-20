@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.1 (18 September 2022)",
+    DateTime = "v1.3 (20 October 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -154,6 +154,20 @@ A.Data.ProfileUI = {
                     }, 
                     M = {},
                 },					
+			},
+			{
+				{ -- Spirit of the Dead
+                    E = "Checkbox", 
+                    DB = "SpiritoftheDead",
+                    DBV = true,
+                    L = { 
+                        ANY = "Spirit of the Dead buff",
+                    }, 
+                    TT = { 
+                        ANY = "Maintain Spirit of the Dead buff with T7 4-set bonus. IMPORTANT: Requires binding Rank 1 Life Tap to Sense Demons binding in GGL!"
+                    }, 
+                    M = {},
+                },	
 			},
 			{
                 { -- LifeTap

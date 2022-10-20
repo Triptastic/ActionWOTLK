@@ -2,6 +2,9 @@
 --##### TRIP'S WOTLK HUNTER #####
 --################################
 
+
+--BORROWED ICONS: Hunter's Mark = Stoneform
+
 local _G, setmetatable, pairs, ipairs, select, error, math = 
 _G, setmetatable, pairs, ipairs, select, error, math 
 
@@ -81,6 +84,7 @@ Action[Action.PlayerClass]                     = {
 	Berserking									= Create({ Type = "Spell", ID = 26297		}),	
 	WilloftheForsaken							= Create({ Type = "Spell", ID = 7744		}),
 	ArcaneTorrent								= Create({ Type = "Spell", ID = 28730		}),	
+	Stoneform									= Create({ Type = "Spell", ID = 20594		}),		
 	
 	--Class Skills
 	ArcaneShot			= Create({ Type = "Spell", ID = 3044, useMaxRank = true        }),
@@ -179,7 +183,8 @@ Action[Action.PlayerClass]                     = {
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
     Bloodlust									= Create({ Type = "Spell", ID = 2825        }),
     Drums										= Create({ Type = "Spell", ID = 29529        }),
-    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),  
+    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),
+	Fix										= Create({ Type = "Spell", ID = 51988, Desc = "Idle Icon Fix"        }),	
 }
 
 local A                                     = setmetatable(Action[Action.PlayerClass], { __index = Action })
@@ -250,6 +255,11 @@ local function InRange(unitID)
     return A.ArcaneShot:IsInRange(unitID)
 end 
 InRange = A.MakeFunctionCachedDynamic(InRange)
+
+local function InMelee(unitID)
+	return A.MongooseBite:IsInRange(unitID)
+end
+InMelee = A.MakeFunctionCachedDynamic(InMelee)
 
 local function Interrupts(unitID)
     local useKick, useCC, useRacial, notInterruptable, castRemainsTime = A.InterruptIsValid(unitID, nil, nil, true)   
@@ -458,7 +468,7 @@ A[3] = function(icon, isMulti)
         end
 
         if A.HuntersMark:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.HuntersMark.ID) == 0 and ((Player:GetDeBuffsUnitCount(A.HuntersMark.ID) == 0 and StaticMark) or not StaticMark) and Unit(unitID):TimeToDie() > 2 and not ImmuneArcane[npcID] and ((Unit(unitID):IsBoss() and BossMark) or not BossMark) then
-            return A.HuntersMark:Show(icon)
+            return A.Stoneform:Show(icon)
         end
 
 		if A.ConcussiveShot:IsReady(unitID) and ConcussiveShotPvE and Unit(unitID):IsMelee() and UnitIsUnit(targettarget, player) and A.LastPlayerCastName ~= A.Intimidation:Info() and (not A.Intimidation:IsReady(unitID) or Unit(pet):HasBuffs(A.Intimidation.ID) == 0 or not IntimidationPvE) and Unit(unitID):HasDeBuffs(A.WingClip.ID) < A.GetGCD() and not ImmuneArcane[npcID] then
@@ -589,15 +599,19 @@ A[3] = function(icon, isMulti)
 			return A.MongooseBite:Show(icon)
 		end
 		
-		if A.RaptorStrike:IsReady(unitID) and not A.RaptorStrike:IsSpellCurrent() then
+		if A.RaptorStrike:IsReady(unitID) and not A.RaptorStrike:IsSpellCurrent() and InMelee then
 			return A.RaptorStrike:Show(icon)
 		end		
+
+		return A.Fix:Show(icon)	
 
     end
 
 	if A.IsUnitEnemy("target") and A.GetCurrentGCD() <= A.GetLatency() then 
         return EnemyRotation("target")
     end 
+	
+	return A.Fix:Show(icon)	
         
 end
 -- Finished

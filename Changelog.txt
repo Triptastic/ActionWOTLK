@@ -1,4 +1,19 @@
 Changelog
+20 October 2022:
+Priest (v2.5):
+Fixed Mind Sear.
+Fixed Prayer of Healing calculation for dungeon groups but broke manual health percent selection.
+
+Hunter (v1.3):
+Fixed upload issue.
+Swapped Hunter's Mark icon with Stoneform for now.
+Replaced Class Icon with Earth Living Weapon to stop conflict with Pet icon.
+
+Warlock (v1.3):
+Fixed issue with checking other Warlocks' Curse of Agony.
+Added 4T7 Life Tap option. BIND RANK 1 LIFE TAP TO SENSE DEMONS IN GGL.
+
+
 15 October 2022
 General:
 Swapping Obfuscation to Minifying for speed/ease. 
