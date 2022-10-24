@@ -3,6 +3,7 @@ Changelog
 Warlock (v1.4):
 Disabled Life Tap while in Metamorphosis unless emergency.
 Removed number of enemies required on Metamorphosis abilities.
+Removed IsControlAble fear check (hopefully fixes table error).
 
 Hunter (v1.4):
 Removed temporary icon remaps. Normal bindings now.  
