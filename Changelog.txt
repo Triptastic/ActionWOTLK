@@ -1,4 +1,17 @@
 Changelog
+31 October 2022:
+Rogue (v1.2):
+Added Cold Blood usage to Envenom
+
+
+25 October 2022:
+Hunter (v1.5):
+Added totem check to Hunter's Mark.
+
+Warlock (v1.5):
+Added a Time to Die slider to DoTs.
+
+
 24 October 2022:
 Warlock (v1.4):
 Disabled Life Tap while in Metamorphosis unless emergency.
