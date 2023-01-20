@@ -24,9 +24,33 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.1 (19 September 2022)",
+    DateTime = "v1.2 (31 October 2022)",
     -- Class settings
     [2] = {        
+            { -- GENERAL HEADER
+                {
+                    E = "Header",
+                    L = {
+                        ANY = " ====== REBIND INFO ====== ",
+                    },
+                },
+            }, 
+			{
+                {
+                    E = "Label",
+                    L = {
+                        ANY = "Rebinds occur when a pixel is broken or an ability is missing from the loader. In the list below, the first ability is the binding that you use in the game and the second ability is the binding that you use in the launcher. Ensure that they are the same.",
+                    },
+                },
+			},			
+			{
+                {
+                    E = "Label",
+                    L = {
+                        ANY = "Fan of Knives -> Distract",
+                    },
+                },
+			},
             { -- GENERAL HEADER
                 {
                     E = "Header",
@@ -34,7 +58,7 @@ A.Data.ProfileUI = {
                         ANY = " ====== GENERAL ====== ",
                     },
                 },
-            },            
+            }, 			
             { -- GENERAL OPTIONS FIRST ROW
 				{ -- AOE
                     E = "Checkbox", 
@@ -137,14 +161,59 @@ A.Data.ProfileUI = {
                     M = {},
                 },				
 			},
-            { -- MAGE HEADER
+            { -- PVE HEADER
                 {
                     E = "Header",
                     L = {
-                        ANY = " ====== ROGUE ====== ",
+                        ANY = " ====== PvE ====== ",
                     },
                 },
-            },
+            },			
+			--[[{
+				{ -- Main Hand Poison
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Instant", value = "Instant" },	
+						{ text = "Deadly", value = "Deadly" },						
+						{ text = "Wound", value = "Wound" },
+                        { text = "Auto", value = "Auto" },                       
+						{ text = "None", value = "None" },							
+                    },
+                    DB = "MainHandPoison",
+                    DBV = "Auto",
+                    L = { 
+                        ANY = "Main Hand Poison",
+                    }, 
+                    TT = { 
+                        ANY = "Main Hand Poison", 
+                    }, 
+                    M = {},
+                },
+				{ -- Offhand Poison
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Instant", value = "Instant" },	
+						{ text = "Deadly", value = "Deadly" },						
+						{ text = "Wound", value = "Wound" },
+                        { text = "Auto", value = "Auto" },                       
+						{ text = "None", value = "None" },							
+                    },
+                    DB = "OffhandPoison",
+                    DBV = "Auto",
+                    L = { 
+                        ANY = "Offhand Poison",
+                    }, 
+                    TT = { 
+                        ANY = "Offhand Poison", 
+                    }, 
+                    M = {},
+                },				
+			}, ]]
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
+            },	                       
 			{
 				{ -- StealthOpener
                     E = "Dropdown",                                                         
@@ -164,6 +233,33 @@ A.Data.ProfileUI = {
                     }, 
                     M = {},
                 },
-			},			
-		},
+			},	
+			{
+				{ -- Cold Blood
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Eviscerate", value = "Eviscerate" },
+						{ text = "Envenom", value = "Envenom" },
+						{ text = "Rupture", value = "Rupture" },									
+                    },
+                    DB = "BuffColdBlood",
+                    DBV = "Envenom",
+                    L = { 
+                        ANY = "Cold Blood usage",
+                    }, 
+                    TT = { 
+                        ANY = "Choose the ability to use with Cold Blood. Normally used with Rupture if Combat or Envenom if Assassination.", 
+                    }, 
+                    M = {},
+                },
+			},
+            { -- ROGUE HEADER
+                {
+                    E = "Header",
+                    L = {
+                        ANY = " ====== PvP ====== ",
+                    },
+                },
+            },            				
+		},    
 }

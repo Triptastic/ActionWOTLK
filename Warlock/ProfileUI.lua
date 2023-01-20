@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.3 (20 October 2022)",
+    DateTime = "v1.5 (25 October 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -158,13 +158,13 @@ A.Data.ProfileUI = {
 			{
 				{ -- Spirit of the Dead
                     E = "Checkbox", 
-                    DB = "SpiritoftheDead",
-                    DBV = true,
+                    DB = "SpiritsoftheDamned",
+                    DBV = false,
                     L = { 
-                        ANY = "Spirit of the Dead buff",
+                        ANY = "Spirits of the Damned buff",
                     }, 
                     TT = { 
-                        ANY = "Maintain Spirit of the Dead buff with T7 4-set bonus. IMPORTANT: Requires binding Rank 1 Life Tap to Sense Demons binding in GGL!"
+                        ANY = "Maintain Spirits of the Damned buff with T7 4-set bonus. IMPORTANT: Requires binding Rank 1 Life Tap to Sense Demons binding in GGL!"
                     }, 
                     M = {},
                 },	
@@ -252,6 +252,55 @@ A.Data.ProfileUI = {
                     TT = { 
                         ANY = "Pick your curse!", 
                     }, 
+                    M = {},
+                },
+			},
+			{
+                { -- TTDCorruption
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 30,                            
+                    DB = "TTDCorruption",
+                    DBV = 8,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Corruption Time To Die",
+                    },
+                    TT = { 
+                        ANY = "Approximate amount of seconds left for target to stay alive before using Corruption.", 
+                    },                     
+                    M = {},
+                },	
+                { -- TTDImmolate
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 30,                            
+                    DB = "TTDImmolate",
+                    DBV = 5,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Immolate Time To Die",
+                    },
+                    TT = { 
+                        ANY = "Approximate amount of seconds left for target to stay alive before using Immolate.", 
+                    },                     
+                    M = {},
+                },	
+			},
+			{
+                { -- TTDUA
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 30,                            
+                    DB = "TTDUA",
+                    DBV = 8,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Unstable Affliction Time To Die",
+                    },
+                    TT = { 
+                        ANY = "Approximate amount of seconds left for target to stay alive before using Unstable Affliction.", 
+                    },                     
                     M = {},
                 },					
 			},			

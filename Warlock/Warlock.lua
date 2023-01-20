@@ -372,7 +372,7 @@ local function CanInterrupt(unitID)
 			return A.SpellLock   
 		end 
 		
-		if useCC and Unit(unitID):IsHumanoid() and castRemainsTime > A.Seduction:GetSpellCastTimeCache() + GetPing() and Pet:IsInRange(A.Seduction, unitID) and A.Seduction:IsReady(unitID, true) and A.Seduction:AbsentImun(unitID, Temp.AuraForCC) and Unit(unitID):IsControlAble("fear") then 
+		if useCC and Unit(unitID):IsHumanoid() and castRemainsTime > A.Seduction:GetSpellCastTimeCache() + GetPing() and Pet:IsInRange(A.Seduction, unitID) and A.Seduction:IsReady(unitID, true) and A.Seduction:AbsentImun(unitID, Temp.AuraForCC) then 
 			return A.Seduction        
 		end 
 	end 
@@ -381,7 +381,7 @@ end
 local function CanFear(unitID) 
     -- @return boolean 
     -- Note: Only [3] APL
-    if not A.Fear:IsSpellLastGCD() and not A.Fear:IsSpellInFlight() and A.Fear:IsLatenced() and A.Fear:IsReadyByPassCastGCD(unitID) and A.Fear:AbsentImun(unitID, Temp.AuraForFear) and not Unit(unitID):IsTotem() and Unit(unitID):IsControlAble("fear") then 
+    if not A.Fear:IsSpellLastGCD() and not A.Fear:IsSpellInFlight() and A.Fear:IsLatenced() and A.Fear:IsReadyByPassCastGCD(unitID) and A.Fear:AbsentImun(unitID, Temp.AuraForFear) and not Unit(unitID):IsTotem() then 
         return true 
     end 
 end 
@@ -547,7 +547,13 @@ A[3] = function(icon, isMulti)
 		local CorruptionActive = Unit(unitID):HasDeBuffs(A.Corruption.ID, true) > 0
 		local ImmolateDown = Unit(unitID):HasDeBuffs(A.Immolate.ID, true) == 0
 		local UARefresh = Player:GetDeBuffsUnitCount(A.UnstableAffliction.ID) < 1 
+		local TTDCorruption = A.GetToggle(2, "TTDCorruption")
+		local TTDUA = A.GetToggle(2, "TTDUA")
+		local TTDImmolate = A.GetToggle(2, "TTDImmolate")		
     
+		local DrainSoulTickTime = A.DrainSoul:GetSpellCastTime() / 5
+		local CurseChoice = A.GetToggle(2, "CurseChoice")
+	
 		local DrainLifeHP = A.GetToggle(2, "DrainLifeHP")
 		if A.DrainLife:IsReady(unitID) and Unit(player):HealthPercent() <= DrainLifeHP and canCast and not isMoving then
 			return A.DrainLife:Show(icon)
@@ -555,13 +561,13 @@ A[3] = function(icon, isMulti)
 
 		local LifeTapMana = A.GetToggle(2, "LifeTapMana")
 		local LifeTapHP = A.GetToggle(2, "LifeTapHP")		
-		if A.LifeTap:IsReady(player) and Player:ManaPercentage() <= LifeTapMana and Unit(player):HealthPercent() >= LifeTapHP then
+		if A.LifeTap:IsReady(player) and Player:ManaPercentage() <= LifeTapMana and Unit(player):HealthPercent() >= LifeTapHP and (Unit(player):HasBuffs(A.Metamorphosis.ID) == 0 or Player:ManaPercentage() <= 10) then
 			return A.LifeTap:Show(icon)
 		end
 		
 		local SpiritsoftheDamnedCheck = A.GetToggle(2, "SpiritsoftheDamned")
 		if SpiritsoftheDamnedCheck then
-			if A.LifeTap:IsReady(player) and Unit(player):HasBuffs(A.SpiritsoftheDamned.ID) == 0 then
+			if A.LifeTap:IsReady(player) and Unit(player):HasBuffs(A.SpiritsoftheDamned.ID) == 0 and Unit(player):HasBuffs(A.Metamorphosis.ID) == 0 then
 				return A.SenseDemons:Show(icon)
 			end
 		end
@@ -578,7 +584,7 @@ A[3] = function(icon, isMulti)
 
 		if A.DeathCoil:IsReady(unitID) then         
 			local useKick, useCC, useRacial, _, castRemainsTime = InterruptIsValid(target, nil, nil, true)
-			if (useKick or useCC or useRacial) and castRemainsTime >= A.GetLatency() and A.DeathCoil:AbsentImun(target, Temp.AuraForCC) and Unit(target):IsControlAble("fear") then 
+			if (useKick or useCC or useRacial) and castRemainsTime >= A.GetLatency() and A.DeathCoil:AbsentImun(target, Temp.AuraForCC) then 
 				return A.DeathCoil:Show(icon)
 			end 
 		end 
@@ -625,15 +631,19 @@ A[3] = function(icon, isMulti)
 					return A.ShadowBolt:Show(icon)
 				end
 			end
+
+			if A.Haunt:IsReady(unitID) and canCast and not isMoving then
+				return A.Haunt:Show(icon)
+			end
+
+			if A.UnstableAffliction:IsReady(unitID) and not isMoving and canCast and Unit(unitID):TimeToDie() >= TTDUA and UARefresh then
+				return A.UnstableAffliction:Show(icon)
+			end
 			
-			if A.Corruption:IsReady(unitID) and not CorruptionActive and canCast and Unit(unitID):TimeToDie() >= 8 then
+			if A.Corruption:IsReady(unitID) and not CorruptionActive and canCast and Unit(unitID):TimeToDie() >= TTDCorruption then
 				if (A.ImprovedShadowBolt:IsTalentLearned() and Unit(unitID):HasDeBuffs(A.ImprovedShadowBolt.ID)) or not A.ImprovedShadowBolt:IsTalentLearned() then
 					return A.Corruption:Show(icon)
 				end
-			end
-			
-			if A.UnstableAffliction:IsReady(unitID) and not isMoving and canCast and Unit(unitID):TimeToDie() >= 15 and UARefresh then
-				return A.UnstableAffliction:Show(icon)
 			end
 			
 			local DoCurse = CastCurse()
@@ -641,15 +651,11 @@ A[3] = function(icon, isMulti)
 				return DoCurse:Show(icon)
 			end
 			
-			if A.Haunt:IsReady(unitID) and canCast and not isMoving then
-				return A.Haunt:Show(icon)
-			end
-			
-			if A.DrainSoul:IsReady(unitID) and Unit(unitID):HealthPercent() < 25 and not isMoving and canCast then
+			if A.DrainSoul:IsReady(unitID) and Unit(unitID):HealthPercent() < 25 and not isMoving and canCast and Unit(unitID):HasDeBuffs(A.Corruption.ID, true) > DrainSoulTickTime and ((CurseChoice == "Agony" and Unit(unitID):HasDeBuffs(A.CurseofAgony.ID, true) > DrainSoulTickTime) or CurseChoice ~= "Agony") then
 				return A.DrainSoul:Show(icon)
 			end
 			
-			if A.ShadowBolt:IsReady(unitID) and not isMoving and canCast then
+			if A.ShadowBolt:IsReady(unitID) and not isMoving and canCast and Unit(unitID):HasDeBuffs(A.Corruption.ID, true) > A.ShadowBolt:GetSpellCastTime() and ((CurseChoice == "Agony" and Unit(unitID):HasDeBuffs(A.CurseofAgony.ID, true) > A.ShadowBolt:GetSpellCastTime()) or CurseChoice ~= "Agony") then
 				return A.ShadowBolt:Show(icon)
 			end
 
@@ -674,15 +680,15 @@ A[3] = function(icon, isMulti)
 				return A.DemonicEmpowerment:Show(icon)
 			end
 			
-			if A.ImmolationAura:IsReady(unitID) and Unit(player):HasBuffs(A.Metamorphosis.ID, true) > 0 and UseAoE and MultiUnits:GetByRange(15, 4) >= 3 then
+			if A.ImmolationAura:IsReady(unitID) and Unit(player):HasBuffs(A.Metamorphosis.ID, true) > 0 and UseAoE and MultiUnits:GetByRange(15, 4) >= 1 then
 				return A.ImmolationAura:Show(icon)
 			end
 			
-			if A.ShadowCleave:IsReady(unitID) and Unit(player):HasBuffs(A.Metamorphosis.ID, true) > 0 and UseAoE and MultiUnits:GetByRange(15, 4) >= 3 then
+			if A.ShadowCleave:IsReady(unitID) and Unit(player):HasBuffs(A.Metamorphosis.ID, true) > 0 and UseAoE and MultiUnits:GetByRange(15, 4) >= 1 then
 				return A.ShadowCleave:Show(icon)
 			end		
 
-			if A.Shadowflame:IsReady(unitID) and UseAoE and MultiUnits:GetByRange(15, 4) >= 3 then
+			if A.Shadowflame:IsReady(unitID) and UseAoE and MultiUnits:GetByRange(15, 4) >= 1 then
 				return A.Shadowflame:Show(icon)
 			end	
 
@@ -697,13 +703,13 @@ A[3] = function(icon, isMulti)
 				return DoCurse:Show(icon)
 			end
 
-			if A.Corruption:IsReady(unitID) and not CorruptionActive and canCast and Unit(unitID):TimeToDie() >= 17 then
+			if A.Corruption:IsReady(unitID) and not CorruptionActive and canCast and Unit(unitID):TimeToDie() >= TTDCorruption then
 				if (A.ImprovedShadowBolt:IsTalentLearned() and Unit(unitID):HasDeBuffs(A.ImprovedShadowBolt.ID)) or not A.ImprovedShadowBolt:IsTalentLearned() then
 					return A.Corruption:Show(icon)
 				end
 			end
 
-			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= 5 and not isMoving then
+			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= TTDImmolate and not isMoving then
 				return A.Immolate:Show(icon)
 			end
 
@@ -749,7 +755,7 @@ A[3] = function(icon, isMulti)
 				end
 			end				
 			
-			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= 5 and not isMoving then
+			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= TTDImmolate and not isMoving then
 				return A.Immolate:Show(icon)
 			end
 			
@@ -789,7 +795,7 @@ A[3] = function(icon, isMulti)
 				return A.Corruption:Show(icon)
 			end
 			
-			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= 5 and not isMoving then
+			if A.Immolate:IsReady(unitID) and ImmolateDown and canCast and Unit(unitID):TimeToDie() >= TTDImmolate and not isMoving then
 				return A.Immolate:Show(icon)
 			end	
 

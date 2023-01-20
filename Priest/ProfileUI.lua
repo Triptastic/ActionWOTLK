@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.5 (18 September 2022)",
+    DateTime = "v2.5 (20 October 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -53,6 +53,32 @@ A.Data.ProfileUI = {
                     M = {},
                 },				
             },
+            { -- PRIEST OPTIONS FIRST ROW
+				{ -- SWDMoving
+                    E = "Checkbox", 
+                    DB = "SWDMoving",
+                    DBV = true,
+                    L = { 
+                        ANY = "Shadow Word: Death with movement",
+                    }, 
+                    TT = { 
+                        ANY = "Use Shadow Word: Death whenever moving to keep damage uptime.",
+                    }, 
+                    M = {},
+                },	
+				{ -- SWDMoving
+                    E = "Checkbox", 
+                    DB = "DPMoving",
+                    DBV = true,
+                    L = { 
+                        ANY = "Devouring Plague with movement",
+                    }, 
+                    TT = { 
+                        ANY = "Use Devouring Plague whenever moving to keep damage uptime. This will overwrite your previous Devouring Plague.",
+                    }, 
+                    M = {},
+                },					
+            },				
 			{
 				{ -- RECOVERY POTION CONTROLLER
                     E = "Dropdown",                                                         
@@ -73,6 +99,8 @@ A.Data.ProfileUI = {
                     }, 
                     M = {},
                 },	
+			},
+			{
                 { -- ManaPotion
                     E = "Slider",                                                     
                     MIN = 0, 
@@ -88,8 +116,6 @@ A.Data.ProfileUI = {
                     },                     
                     M = {},
                 },				
-			},
-			{
                 { -- HealthStone
                     E = "Slider",                                                     
                     MIN = 0, 
@@ -104,7 +130,9 @@ A.Data.ProfileUI = {
                         ANY = "HP (%) to use HealthStone", 
                     },                     
                     M = {},
-                },							
+                },	
+			},
+			{
                 { -- DesperatePrayer
                     E = "Slider",                                                     
                     MIN = 0, 
@@ -152,41 +180,90 @@ A.Data.ProfileUI = {
                     },                     
                     M = {},
                 },							
-			},				
+			},	
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
+            },				
             { -- PRIEST HEADER
                 {
                     E = "Header",
                     L = {
-                        ANY = " ====== PRIEST ====== ",
+                        ANY = " ====== TRINKETS ====== ",
                     },
                 },
-            },			
-            { -- PRIEST OPTIONS FIRST ROW
-				{ -- SWDMoving
-                    E = "Checkbox", 
-                    DB = "SWDMoving",
-                    DBV = true,
+            },
+			{
+				{ -- Trinket Type 1
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Damage", value = "Damage" },
+						{ text = "Friendly", value = "Friendly" },
+						{ text = "Self Defensive", value = "SelfDefensive" },
+						{ text = "Mana Gain", value = "ManaGain" },						
+                    },
+                    DB = "TrinketType1",
+                    DBV = "Damage",
                     L = { 
-                        ANY = "Shadow Word: Death with movement",
+                        ANY = "First Trinket",
                     }, 
                     TT = { 
-                        ANY = "Use Shadow Word: Death whenever moving to keep damage uptime.",
+                        ANY = "Pick what type of trinket you have in your first/upper trinket slot (only matters for trinkets with Use effects).", 
                     }, 
                     M = {},
                 },	
-				{ -- SWDMoving
-                    E = "Checkbox", 
-                    DB = "DPMoving",
-                    DBV = true,
+				{ -- Trinket Type 2
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Damage", value = "Damage" },
+						{ text = "Friendly", value = "Friendly" },
+						{ text = "Self Defensive", value = "SelfDefensive" },
+						{ text = "Mana Gain", value = "ManaGain" },						
+                    },
+                    DB = "TrinketType2",
+                    DBV = "Damage",
                     L = { 
-                        ANY = "Devouring Plague with movement",
+                        ANY = "Second Trinket",
                     }, 
                     TT = { 
-                        ANY = "Use Devouring Plague whenever moving to keep damage uptime. This will overwrite your previous Devouring Plague.",
+                        ANY = "Pick what type of trinket you have in your second/lower trinket slot (only matters for trinkets with Use effects).", 
                     }, 
                     M = {},
+                },				
+			},			
+			{
+                { -- TrinketValue1
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "TrinketValue1",
+                    DBV = 40,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "First Trinket Value",
+                    },
+                    TT = { 
+                        ANY = "HP/Mana (%) to use your first trinket, based on what you've chosen for your trinket type. Damage trinkets will be used on burst targets.", 
+                    },                     
+                    M = {},
+                },	
+                { -- TrinketValue2
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "TrinketValue2",
+                    DBV = 40,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Second Trinket Value",
+                    },
+                    TT = { 
+                        ANY = "HP/Mana (%) to use your second trinket, based on what you've chosen for your trinket type. Damage trinkets will be used on burst targets.", 
+                    },                     
+                    M = {},
                 },					
-            },			
+			},				
             { -- LAYOUT SPACE   
                 {
                     E = "LayoutSpace",                                                                         
@@ -214,37 +291,55 @@ A.Data.ProfileUI = {
                 },
             },
 			{
-				{ -- HealingStyle
-                    E = "Dropdown",                                                         
-                    OT = {
-						{ text = "Target", value = "Target" },
-						{ text = "Focus", value = "Focus" },					
-                    },
-                    DB = "HealingStyle",
-                    DBV = "Target",
-                    L = { 
-                        ANY = "Healing Rotation Style: Target or Focus",
-                    }, 
-                    TT = { 
-                        ANY = "Pick how you would like to use the healing rotation style, whether you want to automatically change your target or automatically change your focus. If you set this to focus, it is important that you change all of your heal abilities to '/cast [@focus] SpellName'. You must also change all of your Target Member macros to /focus instead of /target. You may need an updated HealingEngine.lua from Trip to get this to work (message in Discord).", 
-                    }, 
-                    M = {},
-                },
                 { -- DPSHEAL
                     E = "Slider",                                                     
                     MIN = 0, 
                     MAX = 100,                            
-                    DB = "DPSHEAL",
+                    DB = "DPSHEALSHADOWFIEND",
                     DBV = 0,
                     ONLYOFF = true,
                     L = { 
-                        ANY = "DPS while healing mana (%)",
+                        ANY = "DPS mana (%) with Shadowfiend ready",
                     },
                     TT = { 
-                        ANY = "Mana (%) to keep DPSing while healing. Keep at 100 to never DPS while in a party. Can only be used with Focus healing style.", 
+                        ANY = "Mana (%) to keep DPSing while healing with Shadowfiend ready. Keep at 100 to never DPS while in a party.", 
                     },                     
                     M = {},
-                },					
+                },
+			},
+			{
+                { -- DPSHEALSHADOWFIEND
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "DPSHEALNOSHADOWFIEND",
+                    DBV = 0,
+                    ONLYOFF = true,
+                    L = { 
+                        ANY = "DPS while healing mana (%) without Shadowfiend ready",
+                    },
+                    TT = { 
+                        ANY = "Mana (%) to keep DPSing while healing while Shadowfiend is on CD. Keep at 100 to never DPS while in a party with Shadowfiend on CD.", 
+                    },                     
+                    M = {},
+                },			
+			},
+			{
+                { -- NovaMana
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "NovaMana",
+                    DBV = 0,
+                    ONLYOFF = true,
+                    L = { 
+                        ANY = "Holy Nova in AoE Mana (%)",
+                    },
+                    TT = { 
+                        ANY = "Mana (%) to use Holy Nova with 4 or more enemies (must have enemy targeted).", 
+                    },                     
+                    M = {},
+                },				
 			},
 			{
 				{ -- Cleanse
@@ -259,6 +354,8 @@ A.Data.ProfileUI = {
                     }, 
                     M = {},
                 },
+			},
+			{
                 { -- Global Heal Modifier
                     E = "Slider",                                                     
                     MIN = 0, 
@@ -306,6 +403,21 @@ A.Data.ProfileUI = {
                 },				
             },			
 			{
+                { -- LesserHeal
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "LesserHealHP",
+                    DBV = 100,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Lesser Heal HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Lesser Heal.", 
+                    },                     
+                    M = {},
+                },			
                 { -- GreaterHealHP
                     E = "Slider",                                                     
                     MIN = 0, 
@@ -321,6 +433,8 @@ A.Data.ProfileUI = {
                     },                     
                     M = {},
                 },
+			},
+			{
                 { -- FlashHealHP
                     E = "Slider",                                                     
                     MIN = 0, 
@@ -367,7 +481,24 @@ A.Data.ProfileUI = {
                         ANY = "HP (%) to use Circle of Healing.", 
                     },                     
                     M = {},
-                },			
+                },
+                { -- PenanceHP
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "PenanceHP",
+                    DBV = 100,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Penance HP (%)",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Penance.", 
+                    },                     
+                    M = {},
+                },
+			},
+			{
                 { -- PrayerofHealing
                     E = "Slider",                                                     
                     MIN = 0, 
@@ -398,38 +529,40 @@ A.Data.ProfileUI = {
                     },                     
                     M = {},
                 },
-			},	
+			},
 			{
-                { -- LesserHeal
+                { -- SerendipityStacks
                     E = "Slider",                                                     
                     MIN = 0, 
-                    MAX = 100,                            
-                    DB = "LesserHealHP",
-                    DBV = 100,
-                    ONOFF = true,
+                    MAX = 3,                            
+                    DB = "SerendipityStacks",
+                    DBV = 0,
+                    ONOFF = false,
                     L = { 
-                        ANY = "Lesser Heal HP (%)",
+                        ANY = "Prayer of Healing Serendipity Stacks",
                     },
                     TT = { 
-                        ANY = "HP (%) to use Lesser Heal.", 
+                        ANY = "Number of stacks of Serendipity buff to use Prayer of Healing. Does not have any impact on Greater Heal.", 
                     },                     
                     M = {},
                 },			
-                { -- PenanceHP
+			},	
+			{
+                { -- PWSHealth
                     E = "Slider",                                                     
                     MIN = 0, 
                     MAX = 100,                            
-                    DB = "PenanceHP",
+                    DB = "PWSHealth",
                     DBV = 100,
-                    ONOFF = true,
+                    ONOFF = false,
                     L = { 
-                        ANY = "Penance HP (%)",
+                        ANY = "Power Word: Shield HP (%)",
                     },
                     TT = { 
-                        ANY = "HP (%) to use Penance.", 
+                        ANY = "HP (%) to use Power Word: Shield.", 
                     },                     
                     M = {},
-                },
+                },				
 				{ -- BlanketPWS
                     E = "Checkbox", 
                     DB = "BlanketPWS",
@@ -442,24 +575,7 @@ A.Data.ProfileUI = {
                     }, 
                     M = {},
                 },				
-			},
-			{
-                { -- NovaMana
-                    E = "Slider",                                                     
-                    MIN = 0, 
-                    MAX = 100,                            
-                    DB = "NovaMana",
-                    DBV = 0,
-                    ONLYOFF = true,
-                    L = { 
-                        ANY = "Holy Nova in AoE Mana (%)",
-                    },
-                    TT = { 
-                        ANY = "Mana (%) to use Holy Nova with 4 or more enemies (must have enemy targeted).", 
-                    },                     
-                    M = {},
-                },
-			},			
+			},		
 			{ -- PWS HEADER
                 {
                     E = "Header",

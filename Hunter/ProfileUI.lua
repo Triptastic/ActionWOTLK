@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.3 (20 October 2022)",
+    DateTime = "v1.5 (25 October 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -130,6 +130,89 @@ A.Data.ProfileUI = {
                     M = {},
                 },				
 			},
+			{ -- TRINKET HEADER
+                {
+                    E = "Header",
+                    L = {
+                        ANY = " ====== TRINKETS ====== ",
+                    },
+                },
+            },
+			{
+				{ -- Trinket Type 1
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Damage", value = "Damage" },
+						{ text = "Friendly", value = "Friendly" },
+						{ text = "Self Defensive", value = "SelfDefensive" },
+						{ text = "Mana Gain", value = "ManaGain" },						
+                    },
+                    DB = "TrinketType1",
+                    DBV = "Damage",
+                    L = { 
+                        ANY = "First Trinket",
+                    }, 
+                    TT = { 
+                        ANY = "Pick what type of trinket you have in your first/upper trinket slot (only matters for trinkets with Use effects).", 
+                    }, 
+                    M = {},
+                },	
+				{ -- Trinket Type 2
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Damage", value = "Damage" },
+						{ text = "Friendly", value = "Friendly" },
+						{ text = "Self Defensive", value = "SelfDefensive" },
+						{ text = "Mana Gain", value = "ManaGain" },						
+                    },
+                    DB = "TrinketType2",
+                    DBV = "Damage",
+                    L = { 
+                        ANY = "Second Trinket",
+                    }, 
+                    TT = { 
+                        ANY = "Pick what type of trinket you have in your second/lower trinket slot (only matters for trinkets with Use effects).", 
+                    }, 
+                    M = {},
+                },				
+			},			
+			{
+                { -- TrinketValue1
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "TrinketValue1",
+                    DBV = 40,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "First Trinket Value",
+                    },
+                    TT = { 
+                        ANY = "HP/Mana (%) to use your first trinket, based on what you've chosen for your trinket type. Damage trinkets will be used on burst targets.", 
+                    },                     
+                    M = {},
+                },	
+                { -- TrinketValue2
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "TrinketValue2",
+                    DBV = 40,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Second Trinket Value",
+                    },
+                    TT = { 
+                        ANY = "HP/Mana (%) to use your second trinket, based on what you've chosen for your trinket type. Damage trinkets will be used on burst targets.", 
+                    },                     
+                    M = {},
+                },					
+			},				
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
+            },				
             { -- HUNTER HEADER
                 {
                     E = "Header",
@@ -145,10 +228,11 @@ A.Data.ProfileUI = {
 						{ text = "Serpent Sting", value = "SerpentSting" },
 						{ text = "Scorpid Sting", value = "ScorpidSting" },
 						{ text = "Viper Sting", value = "ViperSting" },	
+						{ text = "Automatic", value = "Auto" },							
 						{ text = "None", value = "None" },						
                     },
                     DB = "StingController",
-                    DBV = "ViperSting",
+                    DBV = "Auto",
                     L = { 
                         ANY = "Sting Usage",
                     }, 
@@ -189,32 +273,6 @@ A.Data.ProfileUI = {
                     E = "LayoutSpace",                                                                         
                 },
             },			
-			{
-				{ -- FreezingTrapPvE
-                    E = "Checkbox", 
-                    DB = "FreezingTrapPvE",
-                    DBV = true,
-                    L = { 
-                        ANY = "Freezing Trap Aggro", 
-                    }, 
-                    TT = { 
-                        ANY = "Drop a Freezing Trap if you have aggro on an enemy in melee and in combat with multiple enemies.", 
-                    }, 
-                    M = {},
-                },
-				{ -- FreezingTrapPvE
-                    E = "Checkbox", 
-                    DB = "ProtectFreeze",
-                    DBV = true,
-                    L = { 
-                        ANY = "Untarget Frozen", 
-                    }, 
-                    TT = { 
-                        ANY = "Automatically swap targets if accidentally targeting an enemy with Freezing Trap (only when in combat with mulitple enemies, make sure you're facing the other enemy you want to target).", 
-                    }, 
-                    M = {},
-                },
-			},
             { -- LAYOUT SPACE   
                 {
                     E = "LayoutSpace",                                                                         
@@ -232,7 +290,19 @@ A.Data.ProfileUI = {
                         ANY = "Use Concussive Shot to slow target if aggro swaps to you.", 
                     }, 
                     M = {},
-                },					
+                },		
+				{ -- ArcaneMovementOnly
+                    E = "Checkbox", 
+                    DB = "ArcaneMovingOnly",
+                    DBV = true,
+                    L = { 
+                        ANY = "Arcane Shot with Movement Only", 
+                    }, 
+                    TT = { 
+                        ANY = "Only use Arcane Shot when moving.", 
+                    }, 
+                    M = {},
+                },				
 			},
             { -- LAYOUT SPACE   
                 {
@@ -240,48 +310,19 @@ A.Data.ProfileUI = {
                 },
             },
 			{
-				{ -- READINESS
+				{ -- EndCombatViper
                     E = "Checkbox", 
-                    DB = "ReadinessMisdirection",
+                    DB = "EndCombatViper",
                     DBV = true,
                     L = { 
-                        ANY = "Readiness with Misdirection", 
+                        ANY = "End Combat With Aspect of the Viper", 
                     }, 
                     TT = { 
-                        ANY = "Automatically use Readiness with Misdirection at the start of a boss fight. All subsequent uses of Readiness in the same encounter will be used on Rapid Fire.", 
+                        ANY = "Swap to Aspect of the Viper out of combat when less than 100% mana to ensure mana regen. Useful for regaining mana between packs of mobs.", 
                     }, 
                     M = {},
-                },
+                },					
 			},
-            { -- LAYOUT SPACE   
-                {
-                    E = "LayoutSpace",                                                                         
-                },
-            },			
-			{
-				{
-                    E = "Dropdown",                                                         
-                    OT = {
-						{ text = "Hawk", value = 1 },
-						{ text = "Cheetah", value = 2 },
-						{ text = "Viper", value = 3 },
-                    },
-                    MULT = true,
-                    DB = "AspectController",
-                    DBV = {
-                        [1] = true, 
-                        [2] = true,
-                        [3] = true,
-                    }, 
-                    L = { 
-                        ANY = "Automatic Aspects",
-                    }, 
-                    TT = { 
-                        ANY = "Automatically use Aspects", 
-                    }, 
-                    M = {},
-                },
-			},			
 			{
                 { -- Mana Viper
                     E = "Slider",                                                     
@@ -294,44 +335,37 @@ A.Data.ProfileUI = {
                         ANY = "Viper Aspect Mana Start(%)",
                     },
                     TT = { 
-                        ANY = "Value (%) to turn on Aspect of the Viper. )", 
+                        ANY = "Value (%) to start dancing with Aspect of the Viper. Used in conjunction with the dropdown boxes next to this slider.", 
                     },                     
                     M = {},
-                },	
-                { -- Mana Viper
-                    E = "Slider",                                                     
-                    MIN = 0, 
-                    MAX = 100,                            
-                    DB = "ManaViperEnd",
-                    DBV = 30, -- Set healthpercentage @30% life. 
-                    ONOFF = false,
-                    L = { 
-                        ANY = "Viper Aspect Mana End(%)",
+                },				
+				{
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Steady Shot", value = 1 },
+						{ text = "Aimed Shot", value = 2 },
+						{ text = "Arcane Shot", value = 3 },								
                     },
+                    MULT = true,
+                    DB = "ViperWeave",
+                    DBV = {
+                        [1] = true, 
+                        [2] = false,
+                        [3] = false,
+                    }, 
+                    L = { 
+                        ANY = "Aspect Weave Shots (Viper)",
+                    }, 
                     TT = { 
-                        ANY = "Value (%) to turn off Aspect of the Viper.)", 
-                    },                     
+                        ANY = "Automatically use Aspect of the Viper for these shots when below the mana threshold set on the other slider.", 
+                    }, 
                     M = {},
-                },					
+                },				
 			},			
             { -- LAYOUT SPACE   
                 {
                     E = "LayoutSpace",                                                                         
                 },
-            },	
-            { -- HUNTER OPTIONS
-				{ -- MultiShotST
-                    E = "Checkbox", 
-                    DB = "MultiShotST",
-                    DBV = true,
-                    L = { 
-                        ANY = "MultiShot Single Target", 
-                    }, 
-                    TT = { 
-                        ANY = "MultiShot on single target if mana isn't too low.", 
-                    }, 
-                    M = {},
-                },				
             },					
 		},
 }

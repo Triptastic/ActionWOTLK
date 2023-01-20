@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.2 (15 September 2022)",
+    DateTime = "v2.0 (26 September 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -188,6 +188,79 @@ A.Data.ProfileUI = {
                     },                     
                     M = {},
                 },				
+			},
+			{
+                { -- ManaShield
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "ManaShieldMana",
+                    DBV = 60,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Mana Shield Mana (%)",
+                    },
+                    TT = { 
+                        ANY = "Uses Mana Shield if Ice Barrier isn't ready and player has more mana than this value.", 
+                    },                     
+                    M = {},
+                },
+			},
+			{
+				{ -- AutoInterrupt
+                    E = "Checkbox", 
+                    DB = "AutoInterrupt",
+                    DBV = true,
+                    L = { 
+                        ANY = "Automatic Interrupt",
+                    },
+                    TT = { 
+                        ANY = "Automatic Interrupt in main rotation. Turn off if you want to use AntiFake or Secondary Rotation instead.", 
+                    }, 
+                    M = {},
+                },
+				{ -- InterruptRotation
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Target", value = "Target" },
+						{ text = "Focus", value = "Focus" },			
+                    },
+                    DB = "InterruptRotation",
+                    DBV = "Focus",
+                    L = { 
+                        ANY = "Interrupt Rotation",
+                    }, 
+                    TT = { 
+                        ANY = "Utilises the Secondary Rotation bind to use CC/interrupts on either focus or target, depending on your choice here. IF YOU CHOOSE FOCUS, YOU NEED TO SET YOUR REGULAR TARGET BINDS TO FOCUS MACROS INSTEAD: /cast [@focus,harm][]Deep Freeze", 
+                    }, 
+                    M = {},
+                },
+			},
+			{
+				{ -- BlinkStun
+                    E = "Checkbox", 
+                    DB = "BlinkStun",
+                    DBV = true,
+                    L = { 
+                        ANY = "Blink when stunned",
+                    },
+                    TT = { 
+                        ANY = "Attempt to Blink when stunned. Won't work 100% of the time.", 
+                    }, 
+                    M = {},
+                },	
+				{ -- TotemStomp
+                    E = "Checkbox", 
+                    DB = "TotemStomp",
+                    DBV = true,
+                    L = { 
+                        ANY = "Totem Stomp",
+                    },
+                    TT = { 
+                        ANY = "Automatically switch targets to destroy important totems.", 
+                    }, 
+                    M = {},
+                },					
 			},			
 		},
 }

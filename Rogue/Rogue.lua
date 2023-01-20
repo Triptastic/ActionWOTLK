@@ -87,7 +87,8 @@ Action[Action.PlayerClass]                     = {
 	Backstab									= Create({ Type = "Spell", ID = 53, useMaxRank = true        }),
 	Blind										= Create({ Type = "Spell", ID = 2094, useMaxRank = true        }),	
 	CheapShot									= Create({ Type = "Spell", ID = 1833, useMaxRank = true        }),
-	CloakofShadows								= Create({ Type = "Spell", ID = 31224, useMaxRank = true        }),	
+	CloakofShadows								= Create({ Type = "Spell", ID = 31224, useMaxRank = true        }),
+	ColdBlood									= Create({ Type = "Spell", ID = 14177, useMaxRank = true        }),	
 	DeadlyThrow									= Create({ Type = "Spell", ID = 26679, useMaxRank = true        }),
 	DisarmTrap									= Create({ Type = "Spell", ID = 1842, useMaxRank = true        }),
 	Dismantle									= Create({ Type = "Spell", ID = 51722, useMaxRank = true        }),
@@ -203,6 +204,7 @@ local Temp = {
     AuraForInterrupt                        = {"TotalImun", "DamageMagicImun", "Reflect", "CCTotalImun", "KickImun"},
     AuraForFear                             = {"TotalImun", "DamageMagicImun", "Reflect", "CCTotalImun", "FearImun"},	
 	OpenerRotation							= false,	
+	PvPOpener								= false,		
 }
 
 local ImmuneArcane = {
@@ -238,7 +240,10 @@ local function EnvenomCalc()
 	local effective = base + posBuff + negBuff
 	local ComboPoints = Player:ComboPoints() or 0
 	
-	return A.Envenom:GetSpellDescription()[2]*ComboPoints+effective*(0.09*ComboPoints)
+	if A.Envenom:IsTalentLearned() then
+		return A.Envenom:GetSpellDescription()[2]*ComboPoints+effective*(0.09*ComboPoints)
+	else return false
+	end
 
 end
 
@@ -247,11 +252,108 @@ local function EviscerateCalc()
 	local base, posBuff, negBuff = UnitAttackPower(player)
 	local effective = base + posBuff + negBuff
 	local ComboPoints = Player:ComboPoints()
-	
-	return A.Eviscerate:GetSpellDescription()[2] + ((A.Eviscerate:GetSpellDescription()[3]*ComboPoints)+effective*(0.03*ComboPoints))
+	local minDamage = 0
+	local n = (-2)*ComboPoints + 12 
+
+	if ComboPoints == 0 then
+		minDamage = 0
+	elseif ComboPoints >= 1 then
+		minDamage = A.Eviscerate:GetSpellDescription()[n]
+	end
+
+	return minDamage
 
 end
 
+
+--[[###############
+--### POISONS ###
+--###############
+	
+local function ImbueWeapon()
+	local MainHandPoison = A.GetToggle(2, "MainHandPoison")
+	local OffhandPoison = A.GetToggle(2, "OffhandPoison")
+	local MainHandAuto = "None"
+	local OffhandAuto = "None"
+	local hasMainHandEnchant, mainHandExpiration, mainHandCharges, mainHandEnchantID, hasOffHandEnchant, offHandExpiration, offHandCharges, offHandEnchantID = GetWeaponEnchantInfo()
+	local _, hasWeapon = UnitAttackSpeed(player)
+
+	local InstantPoison = {[323] = true, [324] = true, [325] = true, [623] = true, [624] = true, [625] = true, [2641] = true, [3768] = true, [3769] = true}
+	local WoundPoison = {[703] = true, [704] = true, [705] = true, [706] = true, [2644] = true, [3772] = true, [3773] = true}	
+	local DeadlyPoison = {[7] = true, [8] = true, [626] = true, [627] = true, [2630] = true, [2642] = true, [2643] = true, [3770] = true, [3771] = true,}
+	
+	if MainHandPoison ~="Auto" then
+		MainHandAuto = "None"
+	end
+	if OffhandPoison ~="Auto" then
+		OffhandAuto = "None"
+	end
+
+	if MainHandPoison == "Auto" then
+		if A.WindfuryWeapon:IsTalentLearned() then
+			MainHandAuto = "Windfury"
+		else MainHandAuto = "Rockbiter"
+		end
+		elseif SpecOverride == "Elemental" or (SpecOverride == "AUTO" and A.Thunderstorm:IsTalentLearned()) then
+			MainHandAuto = "Flametongue"
+		elseif SpecOverride == "Restoration" or (SpecOverride == "AUTO" and A.Riptide:IsTalentLearned()) then
+			MainHandAuto = "Earthliving"
+		end
+	end
+
+	if OffhandEnchant == "Auto" then
+		if hasWeapon ~= nil then
+			if SpecOverride == "Enhancement" or (SpecOverride == "AUTO" and A.FeralSpirit:IsTalentLearned()) then
+				if A.WindfuryWeapon:IsTalentLearned() then
+					OffhandAuto = "Windfury"
+				else OffhandAuto = "Rockbiter"
+				end
+			elseif SpecOverride == "Elemental" or (SpecOverride == "AUTO" and A.Thunderstorm:IsTalentLearned()) then
+				OffhandAuto = "Flametongue"
+			elseif SpecOverride == "Restoration" or (SpecOverride == "AUTO" and A.Riptide:IsTalentLearned()) then
+				OffhandAuto = "Earthliving"
+			end
+		end
+	end
+
+	if MainHandPoison == "Instant" or MainHandAuto == "Instant" then
+		if A.WindfuryWeapon:IsReady(player) and ((WindfuryBuff[mainHandEnchantID] and mainHandExpiration <= 3000 and not inCombat) or not WindfuryBuff[mainHandEnchantID]) then
+			return A.WindfuryWeapon
+		end
+	elseif MainHandPoison == "Wound" or MainHandAuto == "Wound" then
+		if A.RockbiterWeapon:IsReady(player) and ((RockbiterBuff[mainHandEnchantID] and mainHandExpiration <= 3000 and not inCombat) or not RockbiterBuff[mainHandEnchantID]) then
+			return A.RockbiterWeapon
+		end		
+	elseif MainHandPoison == "Deadly" or MainHandAuto == "Deadly" then
+		if A.FlametongueWeapon:IsReady(player) and ((FlametongueBuff[mainHandEnchantID] and mainHandExpiration <= 3000 and not inCombat) or not FlametongueBuff[mainHandEnchantID]) then
+			return A.FlametongueWeapon
+		end					
+	end
+	
+	if Unit(player):HasBuffs(A.GhostWolf.ID) == 0 and hasWeapon ~= nil then
+		if OffhandEnchant == "Windfury" or OffhandAuto == "Windfury" then
+			if A.WindfuryWeapon:IsReady(player) and ((WindfuryBuff[offHandEnchantID] and offHandExpiration <= 3000 and not inCombat) or not WindfuryBuff[offHandEnchantID]) then
+				return A.WindfuryWeapon
+			end
+		elseif OffhandEnchant == "Rockbiter" or OffhandAuto == "Rockbiter" then
+			if A.RockbiterWeapon:IsReady(player) and ((RockbiterBuff[offHandEnchantID] and offHandExpiration <= 3000 and not inCombat) or not RockbiterBuff[offHandEnchantID]) then
+				return A.RockbiterWeapon
+			end		
+		elseif OffhandEnchant == "Flametongue" or OffhandAuto == "Flametongue" then
+			if A.FlametongueWeapon:IsReady(player) and ((FlametongueBuff[offHandEnchantID] and offHandExpiration <= 3000 and not inCombat) or not FlametongueBuff[offHandEnchantID]) then
+				return A.FlametongueWeapon
+			end		
+		elseif OffhandEnchant == "Frostbrand" or OffhandAuto == "Frostbrand" then
+			if A.FrostbrandWeapon:IsReady(player) and ((FrostbrandBuff[offHandEnchantID] and offHandExpiration <= 3000 and not inCombat) or not FrostbrandBuff[offHandEnchantID]) then
+				return A.FrostbrandWeapon
+			end	
+		elseif OffhandEnchant == "Earthliving" or OffhandAuto == "Earthliving" then
+			if A.EarthlivingWeapon:IsReady(player) and ((EarthlivingBuff[offHandEnchantID] and mainHandExpiration <= 3000 and not inCombat) or not EarthlivingBuff[offHandEnchantID]) then
+				return A.EarthlivingWeapon
+			end		
+		end
+	end	
+end]]
 
 --- ======= ACTION LISTS =======
 -- [3] Single Rotation
@@ -274,7 +376,7 @@ A[3] = function(icon, isMulti)
 	else 
 		canCast = true
 	end
-	
+
     --###############################
     --##### POTIONS/HEALTHSTONE #####
     --###############################
@@ -345,14 +447,17 @@ A[3] = function(icon, isMulti)
     ------------------------------------------------------
     ---------------- ENEMY UNIT ROTATION -----------------
     ------------------------------------------------------
-    local function EnemyRotation(unitID)
+    local function PvERotation(unitID)
 
         local npcID = select(6, Unit(unitID):InfoGUID())		
 		local SpecSelect = A.GetToggle(2, "SpecSelect")
 		local ComboPoints = Player:ComboPoints()
 		local EnvenomCalc = EnvenomCalc()
 		local EviscerateCalc = EviscerateCalc()
-		
+		local ColdBloodEnvenom = A.GetToggle(2, "BuffColdBlood") == "Envenom"
+		local ColdBloodEviscerate = A.GetToggle(2, "BuffColdBlood") == "Eviscerate"
+		local ColdBloodRupture = A.GetToggle(2, "BuffColdBlood") == "Rupture"
+
 		local DoInterrupt = Interrupts(unitID)
 		if DoInterrupt then 
 			return DoInterrupt:Show(icon)
@@ -438,6 +543,9 @@ A[3] = function(icon, isMulti)
 				end	
 
 				if A.Envenom:IsReady(unitID) and Unit(player):HasBuffs(A.Envenom.ID, true) == 0 and A.MasterPoisoner:IsTalentLearned() and ((Unit(player):HasBuffs(A.SliceandDice.ID and A.HungerForBlood.ID, true) > 0 and ComboPoints >= 4) or Unit(unitID):Health() <= EnvenomCalc) then
+					if A.ColdBlood:IsReady(player) and BurstIsON(unitID) and ColdBloodEnvenom then
+						return A.ColdBlood:Show(icon)
+					end
 					return A.Envenom:Show(icon)
 				end
 
@@ -450,15 +558,25 @@ A[3] = function(icon, isMulti)
 				end
 
 				if A.Eviscerate:IsReady(unitID) and ((BFAoE and Unit(player):HasBuffs(A.BladeFlurry.ID, true) > 0) or Unit(unitID):Health() < EviscerateCalc) and (ComboPoints >= 4 or Unit(unitID):Health() < EviscerateCalc) then
+					if A.ColdBlood:IsReady(player) and BurstIsON(unitID) and ColdBloodEviscerate then
+						return A.ColdBlood:Show(icon)
+					end				
 					return A.Eviscerate:Show(icon)
 				end
 				
 				if A.Rupture:IsReady(unitID) and ((A.HungerForBlood:IsTalentLearned() and Unit(player):HasBuffs(A.HungerForBlood.ID, true) <= A.GetGCD()) or (not A.HungerForBlood:IsTalentLearned() and (Unit(unitID):HasDeBuffs(A.Rupture.ID, true) == 0 or ComboPoints >= 4 and Unit(unitID):HasDeBuffs(A.Rupture.ID, true) < 3))) then
 					if not BFAoE and Unit(player):HasBuffs(A.BladeFlurry.ID) == 0 then
+						if A.ColdBlood:IsReady(player) and BurstIsON(unitID) and ColdBloodRupture then
+							return A.ColdBlood:Show(icon)
+						end
 						return A.Rupture:Show(icon)
 					end
 				end	
-		
+				
+				if A.Riposte:IsReady(unitID) then
+					return A.Riposte:Show(icon)
+				end
+
 				if A.Ambush:IsReady(unitID) and Player:IsBehind() and Unit(player):HasBuffs(A.ShadowDance.ID, true) > 0 and ComboPoints < 5 then
 					return A.Ambush:Show(icon)
 				end
@@ -472,6 +590,9 @@ A[3] = function(icon, isMulti)
 				end
 		
 				if A.Eviscerate:IsReady(unitID) and ComboPoints >= 4 then
+					if A.ColdBlood:IsReady(player) and BurstIsON(unitID) and ColdBloodEnvenom then
+						return A.ColdBlood:Show(icon)
+					end				
 					return A.Eviscerate:Show(icon)
 				end
 		
@@ -479,7 +600,7 @@ A[3] = function(icon, isMulti)
 					return A.GhostlyStrike:Show(icon)
 				end
 		
-				if A.Hemorrhage:IsReady(unitID) then
+				if A.Hemorrhage:IsReady(unitID) and ComboPoints < 4 then
 					return A.Hemorrhage:Show(icon)
 				end
 		
@@ -491,15 +612,84 @@ A[3] = function(icon, isMulti)
 					return A.Backstab:Show(icon)
 				end
 				
-				if A.SinisterStrike:IsReady(unitID) and not A.Mutilate:IsTalentLearned() then
+				if A.SinisterStrike:IsReady(unitID) and not A.Mutilate:IsTalentLearned() and not A.Hemorrhage:IsTalentLearned() then
 					return A.SinisterStrike:Show(icon)
 				end
 			end
 		end
     end
 
-	if A.IsUnitEnemy("target") then 
-        return EnemyRotation("target")
+	local function PvPRotation(unitID)
+
+		--Stealth whenever possible
+		--Premeditation whenever possible
+		--if stealth, continue. if pulled out of stealth, shadow dance now.
+		--Cheap Shot
+		--Eviscerate
+		--Shadow Dance
+		--Ambush
+		--if combopoints 4/5, kidney shot before Cheap Shot expires
+		--if combopoints < 4, ambush if they have nothing otherwise cheap shot
+		--if unit has defensives and not close to dead, SND, gouge and leave
+
+		local amStealthed = Unit(player):HasBuffs(A.Stealth.ID) > 0
+		local amDancing	= Unit(player):HasBuffs(A.ShadowDance.ID) > 0
+		local comboPoints = Player:ComboPoints()
+		local cheapShotDR = Unit(unitID):GetDR("opener_stun")
+		local kidneyDR = Unit(unitID):GetDR("stun")
+		local isStunned = Unit(unitID):HasDeBuffs("Stuned")
+		local energy = Player:Energy()
+
+		if A.CheapShot:GetCooldown() == 0 and A.KidneyShot:GetCooldown() < 1 and A.ShadowDance:GetCooldown() < 1 and (A.Premeditation:IsReady(unitID) or comboPoints >= 2) then
+			Temp.PvPOpener = true
+		end
+
+		if A.Stealth:IsReady(player) then
+			return A.Stealth:Show(icon)
+		end
+
+		if A.Premeditation:IsReady(unitID) and comboPoints <= 3 then
+			return A.Premeditation:Show(icon)
+		end	
+
+		if A.CheapShot:IsReady(unitID) and amStealthed and (cheapShotDR == 100 or (cheapShotDR >= 50 and comboPoints <= 3)) and isStunned <= 1 then
+			return A.CheapShot:Show(icon)
+		end
+
+		if A.KidneyShot:IsReady(unitID) and comboPoints >= 4 and kidneyDR >= 75 and isStunned <= 1 then
+			return A.KidneyShot:Show(icon)
+		end
+
+		if A.Eviscerate:IsReady(unitID) then
+			if comboPoints >= 4 or Unit(unitID):Health() <= EviscerateCalc() then
+				return A.Eviscerate:Show(icon)
+			end
+		end
+
+		if A.ShadowDance:IsReady(player) and not amStealthed and InRange() then
+			return A.ShadowDance:Show(icon)
+		end
+
+		if A.Ambush:IsReady(unitID) and Player:IsBehind() then
+			return A.Ambush:Show(icon)
+		end
+
+		if A.Backstab:IsReady(unitID) and Player:IsBehind() then
+			return A.Backstab:Show(icon)
+		end
+
+		if A.Hemorrhage:IsReady(unitID) and energy >= A.Backstab:GetSpellPowerCost() then
+			return A.Hemorrhage:Show(icon)
+		end
+
+	end
+
+
+	if A.IsUnitEnemy("target") then
+		if A.IsInPvP then 
+        	return PvPRotation("target")
+			else return PvERotation("target")
+		end
     end 
         
 end
@@ -516,3 +706,4 @@ A[6] = nil
 A[7] = nil
 
 A[8] = nil
+ 

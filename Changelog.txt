@@ -1,7 +1,8 @@
 Changelog
 31 October 2022:
 Rogue (v1.2):
-Added Cold Blood usage to Envenom
+Added Cold Blood usage to Envenom.
+Added FoK to Distract pixel (rebind FoK to Distract in GGL).
 
 
 25 October 2022:

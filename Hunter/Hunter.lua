@@ -2,8 +2,12 @@
 --##### TRIP'S WOTLK HUNTER #####
 --################################
 
+--[[Borrowed icons
+Track Humanoids = Readiness
+Track Hidden = Roar of Sacrifice - use on targettarget
+Track Giants = Intervene - use on targettarget
+Track Elementals = Cower]]
 
---BORROWED ICONS: Hunter's Mark = Stoneform
 
 local _G, setmetatable, pairs, ipairs, select, error, math = 
 _G, setmetatable, pairs, ipairs, select, error, math 
@@ -56,6 +60,8 @@ local CanUseSwiftnessPotion                    = Action.CanUseSwiftnessPotion
 local CanUseManaRune                        = Action.CanUseManaRune
 
 local TeamCacheFriendly                        = TeamCache.Friendly
+local TeamCacheFriendlyGUIDs                = TeamCacheFriendly.GUIDs -- unitGUID to unitID
+local TeamCacheEnemy                        = TeamCache.Enemy
 local ActiveUnitPlates                        = MultiUnits:GetActiveUnitPlates()
 
 local SPELL_FAILED_TARGET_NO_POCKETS        = _G.SPELL_FAILED_TARGET_NO_POCKETS      
@@ -174,6 +180,10 @@ Action[Action.PlayerClass]                     = {
 	--Pet Spells
 	CalloftheWild		= Create({ Type = "Spell", ID = 53435, useMaxRank = true        }),
 	FuriousHowl			= Create({ Type = "Spell", ID = 64495, useMaxRank = true        }),
+	RoarofSacrifice		= Create({ Type = "Spell", ID = 53480, useMaxRank = true        }),	
+	Intervene			= Create({ Type = "Spell", ID = 53476, useMaxRank = true        }),	
+	Cower			= Create({ Type = "Spell", ID = 1742, useMaxRank = true        }),		
+	Growl			= Create({ Type = "Spell", ID = 2649, useMaxRank = true        }),	
 	Bite			= Create({ Type = "Spell", ID = 17253, useMaxRank = true        }),
 	Claw			= Create({ Type = "Spell", ID = 16827, useMaxRank = true        }),
 	Smack			= Create({ Type = "Spell", ID = 49966, useMaxRank = true        }),
@@ -241,6 +251,7 @@ local Temp = {
     AuraForInterrupt                        = {"TotalImun", "DamageMagicImun", "Reflect", "CCTotalImun", "KickImun"},
     AuraForFear                             = {"TotalImun", "DamageMagicImun", "Reflect", "CCTotalImun", "FearImun"},	
 	OpenerRotation							= false,	
+	UseAspectoftheViper						= false,
 }
 
 local ImmuneArcane = {
@@ -249,6 +260,37 @@ local ImmuneArcane = {
     [15691] = true,
     [20478] = true, -- Arcane Servant
 }    
+
+local ImmuneNature = {
+    [2762] = true, -- Thundering Exile
+    [2592] = true, -- Rumbling Exile	
+	[2735] = true, -- Lesser Rock Elemental
+	[92] = true, -- Rock Elemental	
+	[2736] = true, -- Greater Rock Elemental	
+	[5463] = true, -- Land Rager	
+	[2752] = true, -- Rumbler (Greater Rock Elemental rarespawn)
+	[2919] = true, -- Fam'retor Guardian (Badlands quest enemy)
+	[9396] = true, -- Ground Pounder
+	[5855] = true, -- Magma Elemental	
+	[17156] = true, -- Tortured Earth Spirit
+	[17158] = true, -- Dust Howler
+	[17159] = true, -- Storm Rager
+	[18062] = true, -- Enraged Crusher	
+	[17154] = true, -- Muck Spawn
+	[8278] = true, -- Smoulder (Rarespawn)
+	[16491] = true, -- Mana Feeder	
+	[26407] = true, -- Lightning Sentry		
+	[28411] = true, -- Frozen Earth	
+} 
+
+
+local StompMe = {
+	5193, -- Tremor Totem
+	2630, -- Earthbind
+	10467, -- Mana Tide Totem
+	--3579, 3911, 3912, 3913, 7398, 7399, 15478, 31120, 31121, 31122, --Stoneclaw Totem
+
+}
 
 local function InRange(unitID)
     -- @return boolean 
@@ -285,6 +327,122 @@ local function CanPurge(unitID)
     end 
 end 
 
+local function UseTrinkets(unitID)
+	local TrinketType1 = A.GetToggle(2, "TrinketType1")
+	local TrinketType2 = A.GetToggle(2, "TrinketType2")
+	local TrinketValue1 = A.GetToggle(2, "TrinketValue1")
+	local TrinketValue2 = A.GetToggle(2, "TrinketValue2")	
+
+	if A.Trinket1:IsReady(unitID) then
+		if TrinketType1 == "Damage" and Player:ManaPercentage() >= 20 and Unit(player):HasBuffs(A.AspectoftheViper.ID) == 0 then
+			if A.BurstIsON(unitID) and A.IsUnitEnemy(unitID) then
+				return A.Trinket1
+			end
+		elseif TrinketType1 == "Friendly" and A.IsUnitFriendly(unitID) then
+			if Unit(unitID):HealthPercent() <= TrinketValue1 then
+				return A.Trinket1
+			end	
+		elseif TrinketType1 == "SelfDefensive" then
+			if Unit(player):HealthPercent() <= TrinketValue1 then
+				return A.Trinket1
+			end	
+		elseif TrinketType1 == "ManaGain" then
+			if Unit(player):PowerPercent() <= TrinketValue1 then
+				return A.Trinket1
+			end
+		end	
+	end
+
+	if A.Trinket2:IsReady(unitID) then
+		if TrinketType2 == "Damage" and Player:ManaPercentage() >= 20 and Unit(player):HasBuffs(A.AspectoftheViper.ID) == 0 then
+			if A.BurstIsON(unitID) and A.IsUnitEnemy(unitID) then
+				return A.Trinket2
+			end
+		elseif TrinketType2 == "Friendly" and A.IsUnitFriendly(unitID) then
+			if Unit(unitID):HealthPercent() <= TrinketValue2 then
+				return A.Trinket2
+			end	
+		elseif TrinketType2 == "SelfDefensive" then
+			if Unit(player):HealthPercent() <= TrinketValue2 then
+				return A.Trinket2
+			end	
+		elseif TrinketType2 == "ManaGain" then
+			if Unit(player):PowerPercent() <= TrinketValue2 then
+				return A.Trinket2
+			end
+		end	
+	end
+
+end
+
+local function SteadyShotNow(unitID)
+	local ManaViperStart = A.GetToggle(2, "ManaViperStart")
+	local ViperWeave = A.GetToggle(2, "ViperWeave")
+	--ViperWeave[1] = SteadyShot
+	--ViperWeave[2] = AimedShot
+	--ViperWeave[3] = ArcaneShot
+
+	local StingisActive = Unit(unitID):HasDeBuffs(A.SerpentSting.ID or A.ViperSting.ID or A.ScorpidSting.ID or A.WyvernSting.ID, true) > 0
+	local SteadyShotCastTime = A.SteadyShot:GetSpellCastTime()
+	local ExplosiveShotLearned = A.ExplosiveShot:IsTalentLearned()
+	local BlackArrowLearned = A.BlackArrow:IsTalentLearned()
+	local KillCommandLearned = A.KillCommand:IsTalentLearned()
+	local ChimeraShotLearned = A.ChimeraShot:IsTalentLearned()
+	local AimedShotLearned = A.AimedShot:IsTalentLearned()
+	local KillShotLearned = A.KillShot:IsTalentLearned()	
+
+	if A.SteadyShot:IsReady(unitID) and StingisActive then
+		if ((SteadyShotCastTime <= A.ExplosiveShot:GetCooldown() and ExplosiveShotLearned) or not ExplosiveShotLearned) and
+		((SteadyShotCastTime <= A.BlackArrow:GetCooldown() and BlackArrowLearned) or not BlackArrowLearned) and
+		((SteadyShotCastTime <= A.KillCommand:GetCooldown() and KillCommandLearned) or not KillCommandLearned) and
+		((SteadyShotCastTime <= A.ChimeraShot:GetCooldown() and ChimeraShotLearned) or not ChimeraShotLearned) and
+		((SteadyShotCastTime <= A.AimedShot:GetCooldown() and AimedShotLearned) or not AimedShotLearned) and
+		((SteadyShotCastTime <= A.KillShot:GetCooldown() and KillShotLearned) or not KillShotLearned) then
+			if ViperWeave[1] and A.AspectoftheViper:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheViper.ID) == 0 and Player:ManaPercentage() <= ManaViperStart then
+				Temp.UseAspectoftheViper = true
+				return A.AspectoftheViper
+			end
+			return A.SteadyShot
+		end
+	end
+		
+
+end
+
+local FreezingArrowAuras = {
+
+		19503, -- Scatter Shot
+		118, -- Polymorph
+		853, -- HoJ
+}
+
+
+local DisarmBuffs = {
+	
+		46924, -- Bladestorm
+        51690, -- Killing Spree
+        51713, -- Shadow Dance
+        13750, -- Adrenaline Rush
+        59672, -- Metamorphosis (demonology)
+        34692, -- The Beast Within 
+        3045, -- Rapid Fire
+        1719, -- Recklessness
+        50213, -- Tiger's Fury (small burst)
+        50334, -- Berserk 
+        49016, -- Unholy Frenzy 
+        31884, -- Avenging Wrath
+		48505, -- Starfall
+		
+}
+
+local BeastBuff = {
+	
+		5487, -- Bear Form
+		768, -- Cat Form
+		9634, -- Dire Bear Form
+		
+}
+
 --- ======= ACTION LISTS =======
 -- [3] Single Rotation
 A[3] = function(icon, isMulti)
@@ -296,20 +454,22 @@ A[3] = function(icon, isMulti)
     local inCombat = Unit(player):CombatTime() > 0
     local combatTime = Unit(player):CombatTime()
     local UseAoE = A.GetToggle(2, "AoE")
-	local canAoE = UseAoE and (Pet:GetInRange(A.Smack.ID) >= 3 or Pet:GetInRange(A.Claw.ID) >= 3  or Pet:GetInRange(A.Bite.ID) >= 3  or Pet:GetInRange(A.Gore.ID) >= 3 )
+	local canAoE = UseAoE and MultiUnits:GetActiveEnemies() >= 3 --(Pet:GetInRange(A.Smack.ID) >= 3 or Pet:GetInRange(A.Claw.ID) >= 3  or Pet:GetInRange(A.Bite.ID) >= 3  or Pet:GetInRange(A.Gore.ID) >= 3 )
 	local ManaViperStart = A.GetToggle(2, "ManaViperStart")
-	local ManaViperEnd = A.GetToggle(2, "ManaViperEnd")
 	local StaticMark = A.GetToggle(2, "StaticMark")
 	local BossMark = A.GetToggle(2, "BossMark") 
 	local StingController = A.GetToggle(2, "StingController")
 	local ConcussiveShotPvE = A.GetToggle(2, "ConcussiveShotPvE")
 	local IntimidationPvE = A.GetToggle(2, "IntimidationPvE")
-	local ProtectFreeze = A.GetToggle(2, "ProtectFreeze")
-	local ReadinessMisdirection = A.GetToggle(2, "ReadinessMisdirection")
-	local AspectController = A.GetToggle(2, "AspectController")
-	--AspectController[1] = Hawk
-	--AspectController[2] = Cheetah
-	--AspectController[3] = Viper
+	local EndCombatViper = A.GetToggle(2, "EndCombatViper")
+	
+	local Bursting = Unit(player):HasBuffs(A.RapidFire.ID) > 0 or Unit(player):HasBuffs(A.BestialWrath.ID) > 0 or Unit(player):HasBuffs(A.Berserking.ID) > 0 or Unit(player):HasBuffs(A.BloodFury.ID) > 0 or Unit(player):HasBuffs(A.Bloodlust.ID) > 0 or Unit(player):HasBuffs(A.Heroism.ID) > 0
+
+	local ViperWeave = A.GetToggle(2, "ViperWeave")
+	--ViperWeave[1] = SteadyShot
+	--ViperWeave[2] = AimedShot
+	--ViperWeave[3] = ArcaneShot
+
 
 	if (Player:IsCasting() or Player:IsChanneling()) then
 		canCast = false
@@ -375,70 +535,54 @@ A[3] = function(icon, isMulti)
 	end
     
 	local MendPetHP = A.GetToggle(2, "MendPetHP")
-	if A.MendPet:IsReady(player) and Unit(pet):HealthPercent() <= MendPetHP and Unit(pet):HasBuffs(A.MendPet.ID, true) == 0 then
+	if A.MendPet:IsReady(player) and Unit(pet):IsExists() and Unit(pet):HealthPercent() <= MendPetHP and Unit(pet):HealthPercent() > 0 and Unit(pet):HasBuffs(A.MendPet.ID, true) == 0 and Unit(pet):GetRange() < A.ArcaneShot:GetRange() then
 		return A.MendPet:Show(icon)
 	end
-	
-	--Will of the Forsaken
-	if A.WilloftheForsaken:AutoRacial() then 
-		return A.WilloftheForsaken:Show(icon)
-	end 
-	
-	-- EscapeArtist
-	if A.EscapeArtist:AutoRacial() then 
-		return A.EscapeArtist:Show(icon)
-	end 	
 	
     --###############
     --##### OOC #####
     --###############    
-
-   if AspectController[3] then --Viper
-        if A.AspectoftheViper:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheViper.ID, true) == 0 and Player:ManaPercentage() < ManaViperStart and not Player:IsMounted() then
-            return A.AspectoftheViper:Show(icon)
-        end
-    end
     
-    if AspectController[2] then --Cheetah
-        if A.AspectoftheCheetah:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheCheetah.ID, true) == 0 and ((Player:ManaPercentage() > ManaViperEnd and AspectController[3]) or not AspectController[3]) and not inCombat and not Player:IsMounted() and not A.IsUnitEnemy(target) then
-            return A.AspectoftheCheetah:Show(icon)
-        end
-    end
-    
-    if A.CallPet:IsReady(player) and Pet:CanCall() then
+	if not inCombat then
+		Temp.UseAspectoftheViper = false
+	end
+	
+    if A.CallPet:IsReady(player) and not Unit(pet):IsExists() and not inCombat then
         return A.CallPet:Show(icon)
     end
     
-    if A.RevivePet:IsReady(player) and Unit(pet):IsDead() then
+    if A.RevivePet:IsReady(player) and Unit(pet):IsDead() and not inCombat then
         return A.RevivePet:Show(icon)
     end
 
-	if A.TrueshotAura:IsReady(player) and Unit(player):HasBuffs(A.TrueshotAura.ID, true) == 0 then
+	--[[if A.Cower:IsReady(player) and inCombat and Unit(pet):HealthPercent() <= 30 then
+		return A.TrackElementals:Show(icon)
+	end]]
+
+	if A.TrueshotAura:IsReady(player) and Unit(player):HasBuffs(A.TrueshotAura.ID) == 0 and Unit(player):HasBuffs(53138) == 0 then -- Abomination's Might
 		return A.TrueshotAura:Show(icon)
 	end
-
-	local function HunterTracking()
-		local name, texture, active, category = GetTrackingInfo(1) 
-		if not active then 
-			return A.TrackBeasts
-		end
-	end
-	local HunterTracking = HunterTracking()
-	if A.TrackBeasts:IsReady(player) and HunterTracking then
-		return HunterTracking:Show(icon)
-	end
+	
+	if A.AspectoftheViper:IsReady(player) and EndCombatViper and Unit(player):HasBuffs(A.AspectoftheViper.ID) == 0 and Unit(player):HasBuffs(A.AspectoftheCheetah.ID) == 0 and not inCombat and not A.IsUnitEnemy(target) and Player:ManaPercentage() < 100 then
+		return A.AspectoftheViper:Show(icon)
+	end	
+	
+	if A.Misdirection:IsReady(player) and combatTime < 5 and A.IsUnitEnemy(target) and not A.IsInPvP then
+		return A.Misdirection:Show(icon)
+	end	
  
     ------------------------------------------------------
     ---------------- ENEMY UNIT ROTATION -----------------
     ------------------------------------------------------
-    local function EnemyRotation(unitID)
+    local function PvE(unitID)
 
-        local npcID = select(6, Unit(unitID):InfoGUID())		
+	-- PVE ROTATION
+
+		local npcID = select(6, Unit(unitID):InfoGUID())		
 		local SpecSelect = A.GetToggle(2, "SpecSelect")
 		
-		local StingisActive = Unit(unitID):HasDeBuffs(A.SerpentSting.ID or A.ViperSting.ID or A.ScorpidSting.ID or A.WyvernSting.ID, true) > 0
-		local SteadyShotReady = A.SteadyShot:GetSpellCastTime() <= A.ExplosiveShot:GetCooldown() and A.BlackArrow:GetCooldown() and A.KillCommand:GetCooldown() and Unit(unitID):HasDeBuffs(A.SerpentSting.ID or A.ViperSting.ID or A.ScorpidSting.ID or A.WyvernSting.ID, true) and A.KillShot:GetCooldown() and A.ChimeraShot:GetCooldown() and A.AimedShot:GetCooldown() and A.ArcaneShot:GetCooldown() 
-
+		local StingisActive = Unit(unitID):HasDeBuffs(A.SerpentSting.ID, true) > 0 or Unit(unitID):HasDeBuffs(A.ViperSting.ID, true) > 0 or Unit(unitID):HasDeBuffs(A.ScorpidSting.ID, true) > 0 or Unit(unitID):HasDeBuffs(A.WyvernSting.ID, true) > 0
+		
 		local DoInterrupt = Interrupts(unitID)
 		if DoInterrupt then 
 			return DoInterrupt:Show(icon)
@@ -449,33 +593,34 @@ A[3] = function(icon, isMulti)
 			return DoPurge:Show(icon)
 		end
 
-        if AspectController[1] then --Hawk
-            if Unit(player):HasBuffs(A.AspectoftheHawk.ID or A.AspectoftheDragonhawk.ID, true) == 0 and (inCombat or A.IsUnitEnemy(unitID)) and ((Player:ManaPercentage() > ManaViperEnd and AspectController[3]) or not AspectController[3]) and not Player:IsMounted() then
-				if A.AspectoftheDragonhawk:IsReady(player) then 
+		if A.AspectoftheHawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheHawk.ID and A.AspectoftheDragonhawk.ID) == 0 and Player:ManaPercentage() > ManaViperStart and not Temp.UseAspectoftheViper then
+			if A.AspectoftheDragonhawk:IsReady(player) then
+				return A.AspectoftheDragonhawk:Show(icon)
+			end
+		end
+
+		if A.KillShot:IsReady(unitID) then
+			if A.AspectoftheHawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheHawk.ID and A.AspectoftheDragonhawk.ID) == 0 then
+				if A.AspectoftheDragonhawk:IsReady(player) then
 					return A.AspectoftheDragonhawk:Show(icon)
-				elseif A.AspectoftheHawk:IsReady(player) then
-					return A.AspectoftheHawk:Show(icon)
 				end
-            end
-        end
+			end
+			return A.KillShot:Show(icon)				
+		end
 
-		if ProtectFreeze and Unit(unitID):HasDeBuffs(A.FreezingTrapDebuff.ID) > 0 and A.MultiUnits:GetActiveEnemies() >= 2 then
-            return A:Show(icon, CONST.AUTOTARGET)
-        end
-        
-        if A.FreezingTrap:IsReady(player) and FreezingTrapPvE and A.MultiUnits:GetActiveEnemies() >= 2 and A.MultiUnits:GetByRangeInCombat(5, 1, 5) >= 1 then
-            return A.FreezingTrap:Show(icon)
-        end
-
-        if A.HuntersMark:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.HuntersMark.ID) == 0 and ((Player:GetDeBuffsUnitCount(A.HuntersMark.ID) == 0 and StaticMark) or not StaticMark) and Unit(unitID):TimeToDie() > 2 and not ImmuneArcane[npcID] and ((Unit(unitID):IsBoss() and BossMark) or not BossMark) then
-            return A.Stoneform:Show(icon)
-        end
+		if A.HuntersMark:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.HuntersMark.ID) == 0 and ((Player:GetDeBuffsUnitCount(A.HuntersMark.ID) == 0 and StaticMark) or not StaticMark) and Unit(unitID):TimeToDie() > 2 and not ImmuneArcane[npcID] and ((Unit(unitID):IsBoss() and BossMark) or not BossMark) and not Unit(unitID):IsTotem() then
+			return A.HuntersMark:Show(icon)
+		end
+		
+		if not Pet:IsAttacking() and A.GetToggle(1, "AutoAttack") and not Unit(unitID):IsDead() then
+			return A:Show(icon, CONST.AUTOATTACK)
+		end
 
 		if A.ConcussiveShot:IsReady(unitID) and ConcussiveShotPvE and Unit(unitID):IsMelee() and UnitIsUnit(targettarget, player) and A.LastPlayerCastName ~= A.Intimidation:Info() and (not A.Intimidation:IsReady(unitID) or Unit(pet):HasBuffs(A.Intimidation.ID) == 0 or not IntimidationPvE) and Unit(unitID):HasDeBuffs(A.WingClip.ID) < A.GetGCD() and not ImmuneArcane[npcID] then
 			return A.ConcussiveShot:Show(icon)
-		end
+		end	
 
-		if inCombat and BurstIsON(unitID) then
+		if inCombat and BurstIsON(unitID) and Player:ManaPercentage() >= 30 and Unit(player):HasBuffs(A.AspectoftheViper.ID) == 0 then
 			if A.CalloftheWild:IsReady(player) then
 				return A.CalloftheWild:Show(icon)
 			end
@@ -490,16 +635,7 @@ A[3] = function(icon, isMulti)
 			
 			if A.RapidFire:IsReady(player) and Unit(player):HasBuffs(A.RapidFire.ID, true) == 0 then
 				return A.RapidFire:Show(icon)
-			end
-			
-			if A.Readiness:IsReady(player) then
-				if (not ReadinessMisdirection or combatTime > 10) and A.RapidFire:GetCooldown() >= 20 then
-					return A.Readiness:Show(icon)
-				end
-				if ReadinessMisdirection and combatTime < 10 and A.Misdirection:GetCooldown() > 1 then
-					return A.Readiness:Show(icon)
-				end
-			end				
+			end			
 			
 			if A.BloodFury:IsReady(player) then
 				return A.BloodFury:Show(icon)
@@ -509,56 +645,77 @@ A[3] = function(icon, isMulti)
 				return A.Berserking:Show(icon)
 			end
 			
-			--Trinket 1
-			if A.Trinket1:IsReady(player) then
-				return A.Trinket1:Show(icon)    
+			if A.Readiness:IsReady(player) and A.RapidFire:GetCooldown() > 30 and A.ChimeraShot:GetCooldown() > 1 then
+				return A.TrackHumanoids:Show(icon)
 			end
-			
-			--Trinket 2
-			if A.Trinket2:IsReady(player) then
-				return A.Trinket2:Show(icon)    
-			end    			
 		end
 		
-		if A.KillCommand:IsReadyByPassCastGCD(player) and Unit(pet):IsExists() and Pet:IsInRange(A.Claw.ID, unitID) then
+		if A.KillCommand:IsReady(player) and Unit(pet):IsExists() and A.SteadyShot:AbsentImun(unitID, Temp.TotalAndPhys) then
+			if not Pet:IsAttacking() then
+				return A:Show(icon, CONST.AUTOATTACK) 
+			end
 			return A.KillCommand:Show(icon)
-		end
-
-		if A.KillShot:IsReady(unitID) and Unit(unitID):HealthPercent() <= 20 then
-			return A.KillShot:Show(icon)
 		end
 		
 		if A.ExplosiveShot:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.ExplosiveShot.ID, true) == 0 then
+			if A.AspectoftheHawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheHawk.ID and A.AspectoftheDragonhawk.ID) == 0 then
+				if A.AspectoftheDragonhawk:IsReady(player) then
+					return A.AspectoftheDragonhawk:Show(icon)
+				end
+			end
 			return A.ExplosiveShot:Show(icon)
 		end
 		
-		local MultiShotST = A.GetToggle(2, "MultiShotST")
-		if A.MultiShot:IsReady(unitID) and (canAoE or (MultiShotST and Player:ManaPercentage() >= 40)) then
+		if A.MultiShot:IsReady(unitID) and (canAoE or not A.AimedShot:IsTalentLearned()) then
 			return A.MultiShot:Show(icon)
 		end
-		
-		if A.BlackArrow:IsTalentLearned() and A.BlackArrow:GetCooldown() < 6 and A.BlackArrow:GetCooldown() > 0 then
-			A.Toaster:SpawnByTimer("TripToast", 6, "Black Arrow/Explosive Trap!", "Black Arrow/Explosive Trap coming off CD!", A.BlackArrow.ID)
-		end
 
-		if A.BlackArrow:IsReady(unitID) and not canAoE then
+		if A.BlackArrow:IsReady(unitID) then
+			if A.AspectoftheHawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheHawk.ID and A.AspectoftheDragonhawk.ID) == 0 then
+				if A.AspectoftheDragonhawk:IsReady(player) then
+					return A.AspectoftheDragonhawk:Show(icon)
+				end	
+			end
 			return A.BlackArrow:Show(icon)
 		end
 		
-		if A.ExplosiveTrap:IsReady(player) and (MultiUnits:GetByRange(8, 5) >= 3 or (A.TNT:IsTalentLearned() and A.RaptorStrike:IsInRange(unitID))) then
+		if A.ExplosiveTrap:IsReady(player) and A.MongooseBite:IsInRange(unitID) then
+			if A.AspectoftheHawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheHawk.ID and A.AspectoftheDragonhawk.ID) == 0 then
+				if A.AspectoftheDragonhawk:IsReady(player) then
+					return A.AspectoftheDragonhawk:Show(icon)
+				end	
+			end
 			return A.ExplosiveTrap:Show(icon)
 		end
 		
-		if A.Volley:IsReady(player) and canAoE then
+		if A.Volley:IsReady(player) and canAoE and not isMoving then
+			if A.AspectoftheHawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheHawk.ID and A.AspectoftheDragonhawk.ID) == 0 then
+				if A.AspectoftheDragonhawk:IsReady(player) then
+					return A.AspectoftheDragonhawk:Show(icon)
+				end
+			end
 			return A.Volley:Show(icon)
 		end
 		
 		if A.ChimeraShot:IsReady(unitID) and StingisActive then
+			if A.AspectoftheHawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheHawk.ID and A.AspectoftheDragonhawk.ID) == 0 then
+				if A.AspectoftheDragonhawk:IsReady(player) then
+					return A.AspectoftheDragonhawk:Show(icon)
+				end	
+			end
 			return A.ChimeraShot:Show(icon)
+		end
+
+		if StingController == "Auto" then
+			if A.ViperSting:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.ViperSting.ID) == 0 and Unit(unitID):PowerType() == "MANA"  and Unit(unitID):Power() >= 10 and A.ChimeraShot:IsTalentLearned() and Player:ManaPercentage() < 50 and not Unit(unitID):IsBoss() then
+				return A.ViperSting:Show(icon)
+			elseif A.SerpentSting:IsReady(unitID) and not StingisActive and not ImmuneNature[npcID] then
+				return A.SerpentSting:Show(icon)
+			end
 		end
 		
 		if StingController == "SerpentSting" then
-			if A.SerpentSting:IsReady(unitID) and not StingisActive then
+			if A.SerpentSting:IsReady(unitID) and not StingisActive and not ImmuneNature[npcID] and ((Unit(unitID):TimeToDie() > 8 and not A.ChimeraShot:IsTalentLearned()) or A.ChimeraShot:IsTalentLearned()) then
 				return A.SerpentSting:Show(icon)
 			end
 		end
@@ -573,25 +730,49 @@ A[3] = function(icon, isMulti)
 			if A.ViperSting:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.ViperSting.ID) == 0 then
 				if Unit(unitID):PowerType() == "MANA" and Unit(unitID):Power() >= 10 then
 					return A.ViperSting:Show(icon)
-				elseif not StingisActive then
+				elseif not StingisActive and not ImmuneNature[npcID] then
 					return A.SerpentSting:Show(icon)
 				end
 			end
 		end
 		
 		if A.AimedShot:IsReady(unitID) then
+			if ViperWeave[2] then
+				if A.AspectoftheViper:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheViper.ID) == 0 and Player:ManaPercentage() <= ManaViperStart then
+					Temp.UseAspectoftheViper = true
+					return A.AspectoftheViper:Show(icon)
+				end
+			elseif not ViperWeave[2] then
+				if A.AspectoftheDragonhawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheDragonhawk.ID) == 0 then
+					Temp.UseAspectoftheViper = false
+					return A.AspectoftheDragonhawk:Show(icon)
+				end
+			end				
 			return A.AimedShot:Show(icon)
 		end
 		
-		if A.ArcaneShot:IsReady(unitID) and (Unit(player):HasBuffs(A.LockandLoad.ID, true) == 0 or not A.ExplosiveShot:IsTalentLearned()) then
+		local ArcaneMovingOnly = A.GetToggle(2, "ArcaneMovingOnly")
+		if A.ArcaneShot:IsReady(unitID) and (Unit(player):HasBuffs(A.LockandLoad.ID, true) == 0 or not A.ExplosiveShot:IsTalentLearned()) and ((ArcaneMovingOnly and not isMoving) or not ArcaneMovingOnly) then
+			if ViperWeave[3] then
+				if A.AspectoftheViper:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheViper.ID) == 0 and Player:ManaPercentage() <= ManaViperStart then
+					Temp.UseAspectoftheViper = true
+					return A.AspectoftheViper:Show(icon)
+				end
+			elseif not ViperWeave[3] then
+				if A.AspectoftheDragonhawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheDragonhawk.ID) == 0 then
+					Temp.UseAspectoftheViper = false
+					return A.AspectoftheDragonhawk:Show(icon)
+				end
+			end		
 			return A.ArcaneShot:Show(icon)
 		end
 		
-		if A.SteadyShot:IsReady(unitID) and not isMoving and SteadyShotReady then
-			return A.SteadyShot:Show(icon)
+		local SteadyShotReady = SteadyShotNow(unitID)
+		if SteadyShotReady and not isMoving then
+			return SteadyShotReady:Show(icon)
 		end
 
-		if A.WingClip:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.WingClip.ID, true) <= A.GetGCD() and A.WingClip:AbsentImun(unitID, Temp.TotalAndPhysAndCC) then
+		if A.WingClip:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.WingClip.ID, true) <= A.GetGCD() then
 			return A.WingClip:Show(icon)
 		end            
 		
@@ -599,19 +780,227 @@ A[3] = function(icon, isMulti)
 			return A.MongooseBite:Show(icon)
 		end
 		
-		if A.RaptorStrike:IsReady(unitID) and not A.RaptorStrike:IsSpellCurrent() and InMelee then
+		if A.RaptorStrike:IsReady(unitID) and not A.RaptorStrike:IsSpellCurrent() and InMelee() then
+			return A.RaptorStrike:Show(icon)
+		end	
+
+		if A.AspectoftheViper:IsReady(player) and Player:ManaPercentage() <= ManaViperStart and Unit(player):HasBuffs(A.AspectoftheViper.ID) == 0 then
+			return A.AspectoftheViper:Show(icon)
+		end
+
+		if Player:IsShooting() or Player:IsAttacking() then
+			return A.Fix:Show(icon)
+		end
+
+	end
+		
+	local function PvP(unitID)
+	--PVP ROTATION		
+		local KillWindow = IsUnitEnemy(unitID) and Unit(unitID):HealthPercent() <= 65
+		local StingisActive = Unit(unitID):HasDeBuffs(A.SerpentSting.ID, true) > 0 or Unit(unitID):HasDeBuffs(A.ViperSting.ID, true) > 0 or Unit(unitID):HasDeBuffs(A.ScorpidSting.ID, true) > 0 or Unit(unitID):HasDeBuffs(A.WyvernSting.ID, true) > 0
+
+		--[[local TotemNameplates = MultiUnits:GetActiveUnitPlates()
+		if TotemNameplates then 
+			for TotemUnit in pairs(TotemNameplates) do
+				for i = 1, #StompMe do 
+					local TotemID = select(6, Unit(TotemUnit):InfoGUID())
+					if Unit(TotemUnit):IsTotem() and TotemID == 5925 then --Grounding Totem
+						return A.Growl:Show(icon)
+					end
+					if Unit(TotemUnit):IsTotem() and TotemID == StompMe[i] and A.ArcaneShot:IsInRange(TotemUnit) then
+						if not UnitIsUnit(TotemUnit, target) then
+							return A:Show(icon, ACTION_CONST_AUTOTARGET)
+						elseif UnitIsUnit(TotemUnit, target) then
+							if not isMoving then
+								return A:Show(icon, CONST.AUTOATTACK)
+							end								
+						end
+					end
+				end
+			end
+		end]]
+
+		--[[if A.Intervene:IsReady(player) and Unit(unitID):HasBuffs("DamageBuffs") > 1 and Unit(targettarget):GetRange() < A.ArcaneShot:GetRange() and not Unit(pet):InCC() then
+			return A.TrackGiants:Show(icon)
+		end
+
+		if A.RoarofSacrifice:IsReady(player) and Unit(unitID):HasBuffs("DamageBuffs") > 1 and Unit(targettarget):GetRange() < A.ArcaneShot:GetRange() and not Unit(pet):InCC() then
+			return A.TrackHidden:Show(icon)
+		end		]]
+
+		if A.FreezingArrow:IsReady(player) and (Unit("arena1"):HasDeBuffs(FreezingArrowAuras) > 1 or Unit("arena2"):HasDeBuffs(FreezingArrowAuras) > 1 or Unit("arena3"):HasDeBuffs(FreezingArrowAuras) > 1 or Unit("arena4"):HasDeBuffs(FreezingArrowAuras) > 1 or Unit("arena5"):HasDeBuffs(FreezingArrowAuras) > 1 or Unit("target"):HasDeBuffs(FreezingArrowAuras) > 1) then
+			return A.FreezingArrow:Show(icon)
+		end
+
+		if A.ChimeraShot:IsReady(unitID) and Unit(unitID):HasBuffs(DisarmBuffs) > 0 then
+			if A.ScorpidSting:IsReady(unitID) then
+				return A.ScorpidSting:Show(icon)
+			end
+			return A.ChimeraShot:Show(icon)
+		end
+
+		if A.ChimeraShot:IsReady(unitID) and Unit(player):Power() > (A.ChimeraShot:GetSpellPowerCost() + A.ViperSting:GetSpellPowerCost()) and Player:ManaPercentage() < 25 and not KillWindow then
+			if A.ViperSting:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.ViperSting.ID) == 0 and Unit(unitID):PowerType() == "MANA" and Unit(unitID):Power() >= 10 then
+				return A.ViperSting:Show(icon)
+			end
+			return A.ChimeraShot:Show(icon)
+		end
+		
+		if A.SnakeTrap:IsReady(player) and A.MongooseBite:IsInRange(unitID) then
+			return A.SnakeTrap:Show(icon)
+		end
+
+		if A.TranquilizingShot:IsReady(unitID) and A.IsUnitEnemy(unitID) then 
+			if (AuraIsValid(unitID, "UseDispel", "PurgeHigh") or AuraIsValid(unitID, "UseExpelEnrage","Enrage")) then 
+				return A.TranquilizingShot:Show(icon)
+			end 
+		end
+		
+		if KillWindow then
+
+			if Unit(focus):IsExists() and A.IsUnitEnemy(focus) and Unit(focus):IsCasting() and Unit(focus):InLOS() then
+				if A.SilencingShot:IsReady(focus) then
+					return A.SilencingShot:Show(icon)
+				end
+				if A.ScatterShot:IsReady(focus) then
+					return A.ScatterShot:Show(icon)
+				end
+			end
+
+			if A.AspectoftheDragonhawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheDragonhawk.ID, true) == 0 then
+				return A.AspectoftheDragonhawk:Show(icon)
+			end
+
+			local UseTrinket = UseTrinkets(unitID)
+			if UseTrinket then
+				return UseTrinket:Show(icon)
+			end	
+
+			if A.KillShot:IsReady(unitID) then
+				if A.AspectoftheDragonhawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheDragonhawk.ID, true) == 0 then
+					return A.AspectoftheDragonhawk:Show(icon)
+				end
+				return A.KillShot:Show(icon)
+			end	
+
+			if A.KillCommand:IsReady(player) and Unit(pet):IsExists() then
+				if not Pet:IsAttacking() then
+					return A:Show(icon, CONST.AUTOATTACK) 
+				end
+				return A.KillCommand:Show(icon)
+			end
+
+			if A.RapidFire:IsReady(unitID) and Unit(player):HasBuffs(A.RapidFire.ID) == 0 then
+				return A.RapidFire:Show(icon)
+			end
+			
+			if A.Readiness:IsReady(player) and A.RapidFire:GetCooldown() > 1 and A.KillCommand:GetCooldown() > 1 and A.AimedShot:GetCooldown() > 1 and A.ChimeraShot:GetCooldown() > 1 then
+				return A.TrackHumanoids:Show(icon)
+			end
+		
+		end	
+		
+		if A.ScareBeast:IsReady(unitID) and (Unit(unitID):HasBuffs(BeastBuff) > 0 or Unit(unitID):CreatureType() ~= "Beast") and not isMoving then
+			return A.ScareBeast:Show(icon)
+		end
+		
+		--[[if (Unit(unitID):HasDeBuffs(A.FreezingArrow.ID) > 0 or Unit(unitID):HasDeBuffs("BreakAble")) and MultiUnits:GetActiveEnemies(40, 3) >= 2 then
+			return A:Show(icon, CONST.AUTOTARGET)
+		end]]
+	
+		--[[if Unit(pet):IsExists() then
+			if UnitIsUnit(targettarget, pet) or Unit(pet):HealthPercent() <= 50 then
+				if Pet:IsAttacking() then
+					return A.TrackUndead:Show(icon)
+				end
+			elseif not UnitIsUnit(targettarget, pet) and Unit(pet):HealthPercent() > 50 and not Unit(pet):InCC() then
+				if not Pet:IsAttacking() then
+					return A:Show(icon, CONST.AUTOATTACK)
+				end
+			end
+		end]]
+	
+		if A.KillShot:IsReady(unitID) then
+			if A.AspectoftheDragonhawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheDragonhawk.ID, true) == 0 then
+				return A.AspectoftheDragonhawk:Show(icon)
+			end
+			return A.KillShot:Show(icon)
+		end
+	
+		if A.AimedShot:IsReady(unitID) then
+			if ViperWeave[2] then
+				if A.AspectoftheViper:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheViper.ID) == 0 and Player:ManaPercentage() <= ManaViperStart then
+					Temp.UseAspectoftheViper = true
+					return A.AspectoftheViper:Show(icon)
+				end
+			elseif not ViperWeave[2] then
+				if A.AspectoftheDragonhawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheDragonhawk.ID) == 0 then
+					Temp.UseAspectoftheViper = false
+					return A.AspectoftheDragonhawk:Show(icon)
+				end
+			end				
+			return A.AimedShot:Show(icon)
+		end
+		
+		if A.SerpentSting:IsReady(unitID) and not StingisActive then
+			return A.SerpentSting:Show(icon)
+		end
+		
+		if A.ChimeraShot:IsReady(unitID) then
+			return A.ChimeraShot:Show(icon)
+		end
+		
+		local ArcaneMovingOnly = A.GetToggle(2, "ArcaneMovingOnly")
+		if A.ArcaneShot:IsReady(unitID) and ((ArcaneMovingOnly and not isMoving) or not ArcaneMovingOnly) then
+			if ViperWeave[3] then
+				if A.AspectoftheViper:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheViper.ID) == 0 and Player:ManaPercentage() <= ManaViperStart then
+					Temp.UseAspectoftheViper = true
+					return A.AspectoftheViper:Show(icon)
+				end
+			elseif not ViperWeave[3] then
+				if A.AspectoftheDragonhawk:IsReady(player) and Unit(player):HasBuffs(A.AspectoftheDragonhawk.ID) == 0 then
+					Temp.UseAspectoftheViper = false
+					return A.AspectoftheDragonhawk:Show(icon)
+				end
+			end				
+			return A.ArcaneShot:Show(icon)
+		end
+
+		if A.HuntersMark:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.HuntersMark.ID) == 0 then
+			return A.HuntersMark:Show(icon)
+		end
+		
+		local SteadyShotReady = SteadyShotNow(unitID)
+		if SteadyShotReady and not isMoving then
+			return SteadyShotReady:Show(icon)
+		end
+
+		if A.WingClip:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.WingClip.ID, true) <= A.GetGCD() then
+			return A.WingClip:Show(icon)
+		end            
+		
+		if A.MongooseBite:IsReady(unitID) then
+			return A.MongooseBite:Show(icon)
+		end
+		
+		if A.RaptorStrike:IsReady(unitID) and not A.RaptorStrike:IsSpellCurrent() and InMelee() then
 			return A.RaptorStrike:Show(icon)
 		end		
-
-		return A.Fix:Show(icon)	
-
-    end
-
-	if A.IsUnitEnemy("target") and A.GetCurrentGCD() <= A.GetLatency() then 
-        return EnemyRotation("target")
-    end 
 	
-	return A.Fix:Show(icon)	
+	end
+
+	if A.IsUnitEnemy(target) and not A.IsInPvP then 
+		unitID = target 
+		if PvE(unitID) then 
+			return true 
+		end 
+	end
+	if A.IsUnitEnemy(target) and A.IsInPvP then 
+		unitID = target 
+		if PvP(unitID) then 
+			return true 
+		end 
+	end	
         
 end
 -- Finished
@@ -622,8 +1011,83 @@ A[4] = nil
 
 A[5] = nil
 
-A[6] = nil
+local PassiveUnitID = {
+    raid = {
+        [1] = "raid1",
+        [2] = "raid2",
+        [3] = "raid3",
+    },
+    party = {
+        [1] = "party1",
+        [2] = "party2",
+        [3] = "party3",
+    },
+    arena = {
+        [1] = "arena1",
+        [2] = "arena2",
+        [3] = "arena3",
+    },
+}
 
-A[7] = nil
+local function ArenaRotation(icon)
 
-A[8] = nil
+    local n = icon.ID and icon.ID - 5
+    if n then  
+        local unitIDe
+		local unitIDf
+        if TeamCacheEnemy.Type then 
+            unitIDe = PassiveUnitID[TeamCacheEnemy.Type][n]
+        end 
+        
+        if TeamCacheFriendly.Type then 
+            unitIDf = PassiveUnitID[TeamCacheFriendly.Type][n]
+        end 
+
+		if unitIDe and Unit(unitIDe):IsExists() and A.IsInPvP and A.Zone == "arena" and not Player:IsStealthed() and not Player:IsMounted() and not Unit(unitIDe):InLOS() then     
+		
+
+			
+		end
+
+		
+		if unitIDf and Unit(unitIDf):IsExists() and A.IsInPvP and A.Zone == "arena" and not Player:IsStealthed() and not Player:IsMounted() and not Unit(unitIDf):InLOS() then	
+
+			if A.MastersCall:IsReady(unitIDf) and (Unit(unitIDf):HasDeBuffs("Rooted") or (Unit(unitIDf):HasDeBuffs("Slowed") and Unit(unitIDf):HealthPercent() <= 70)) then
+				return A.MastersCall:Show(icon)
+			end
+		
+		end
+		
+	end
+end
+
+A[6] = function(icon)
+
+	return ArenaRotation(icon)
+end
+
+--AntiFake CC Focus
+A[7] = function(icon)
+
+	--[[local useKick, useCC, useRacial, notInterruptable, castRemainsTime = A.InterruptIsValid(focus, nil, nil, true)
+	if useCC and A.PsychicScreamGreen:IsReady(player) and Unit(focus):GetRange() <= 8 and A.PsychicScream:AbsentImun(focus, Temp.TotalAndMag) then
+		return A.PsychicScreamGreen:Show(icon)
+	end
+	
+	if useCC and A.PsychicHorrorRed:IsReady(focus) and A.PsychicHorror:AbsentImun(focus, Temp.TotalAndMag) then
+		return A.PsychicHorrorRed:Show(icon)
+	end]]
+
+	return ArenaRotation(icon)
+end
+
+--AntiFake Interrupt Focus
+A[8] = function(icon)  
+
+	--[[local useKick, useCC, useRacial, notInterruptable, castRemainsTime = A.InterruptIsValid(focus, nil, nil, true)   
+	if useKick and A.SilenceGreen:IsReady(focus) and not notInterruptable and A.Silence:AbsentImun(focus, Temp.TotalAndMagKick) then
+		return A.SilenceGreen:Show(icon)
+	end		]]
+
+	return ArenaRotation(icon)
+end
