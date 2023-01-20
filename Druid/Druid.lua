@@ -77,7 +77,7 @@ local GetSpellTexture                             = _G.TMW.GetSpellTexture
 Action[Action.PlayerClass]                     = {
     --Racial
 	Shadowmeld									= Create({ Type = "Spell", ID = 58984        }),
-	Warstomp									= Create({ Type = "Spell", ID = 20549        }),
+	WarStomp									= Create({ Type = "Spell", ID = 20549        }),
 	
 	--Class Skills
 	AbolishPoison								= Create({ Type = "Spell", ID = 2893, useMaxRank = true        }),
@@ -187,21 +187,25 @@ Action[Action.PlayerClass]                     = {
 	GlyphofWrath								= Create({ Type = "Glyph", ID = 54875        }),	
 	
 	--Talents
-	Eclipse										= Create({ Type = "Spell", ID = 48516        }),
-	EclipseLunar								= Create({ Type = "Spell", ID = 48518        }),
-	EclipseSolar								= Create({ Type = "Spell", ID = 48517        }),	
-	ForceofNature								= Create({ Type = "Spell", ID = 33831        }),
-	MoonkinForm									= Create({ Type = "Spell", ID = 24858        }),
-	NaturesSwiftness							= Create({ Type = "Spell", ID = 17116        }),
-	OmenofClarity								= Create({ Type = "Spell", ID = 16864        }),
-	SurvivalInstincts							= Create({ Type = "Spell", ID = 61336        }),	
-	Swiftmend									= Create({ Type = "Spell", ID = 18562        }),	
+	Eclipse										= Create({ Type = "Spell", ID = 48516, isTalent = true, useMaxRank = true,    Hidden = true         }),
+	EclipseLunar								= Create({ Type = "Spell", ID = 48518, isTalent = true, useMaxRank = true,    Hidden = true         }),
+	EclipseSolar								= Create({ Type = "Spell", ID = 48517, isTalent = true, useMaxRank = true,    Hidden = true         }),
+	FeralAggression								= Create({ Type = "Spell", ID = 16858, isTalent = true, useMaxRank = true,    Hidden = true         }),
+	ForceofNature								= Create({ Type = "Spell", ID = 33831, isTalent = true, useMaxRank = true,    Hidden = true         }),
+	Furor										= Create({ Type = "Spell", ID = 17056, isTalent = true, useMaxRank = true,    Hidden = true         }),		
+	MoonkinForm									= Create({ Type = "Spell", ID = 24858, isTalent = true, useMaxRank = true,    Hidden = true         }),
+	NaturesSwiftness							= Create({ Type = "Spell", ID = 17116, isTalent = true, useMaxRank = true,    Hidden = true         }),
+	OmenofClarity								= Create({ Type = "Spell", ID = 16864, isTalent = true, useMaxRank = true,    Hidden = true         }),
+	PrimalFury									= Create({ Type = "Spell", ID = 37116, isTalent = true, useMaxRank = true,    Hidden = true         }),	
+	SurvivalInstincts							= Create({ Type = "Spell", ID = 61336, isTalent = true, useMaxRank = true,    Hidden = true         }),	
+	Swiftmend									= Create({ Type = "Spell", ID = 18562, isTalent = true, useMaxRank = true,    Hidden = true         }),	
 	
     --Misc
     Heroism										= Create({ Type = "Spell", ID = 32182        }),
     Bloodlust									= Create({ Type = "Spell", ID = 2825        }),
     Drums										= Create({ Type = "Spell", ID = 29529        }),
-    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),  
+    SuperHealingPotion							= Create({ Type = "Potion", ID = 22829, QueueForbidden = true }),
+    Trauma										= Create({ Type = "Spell", ID = 46854        }),	
 }
 
 local A                                     = setmetatable(Action[Action.PlayerClass], { __index = Action })
@@ -254,6 +258,7 @@ local Temp = {
     DisableMag                              = {"TotalImun", "DamageMagicImun", "Freedom", "CCTotalImun"},
 	OpenerRotation							= false,
 	UsedReshift								= false,
+	BearWeavingShift						= false,
 	EclipseSolar							= true,
 }
 
@@ -272,13 +277,63 @@ AtRange = A.MakeFunctionCachedDynamic(AtRange)
 
 local function InMelee(UnitID)
     -- @return boolean 
-    return A.Rake:IsInRange(UnitID)
+    return A.Bash:IsInRange(UnitID)
 end 
 InMelee = A.MakeFunctionCachedDynamic(InMelee)
 
-local function Interrupts(unitID)
-    local useKick, useCC, useRacial = A.InterruptIsValid(unitID, "TargetMouseover")   
+local function SelfDefensives()
+    if Unit(player):CombatTime() == 0 then 
+        return 
+    end 
     
+    local unitID
+	if A.IsUnitEnemy("target") then 
+        unitID = "target"
+    end  
+
+    local BarkskinHP = A.GetToggle(2, "BarkskinHP")
+    if A.Barkskin:IsReady(player) and Unit(player):HealthPercent() <= BarkskinHP then
+        return A.Barkskin
+    end
+
+end 
+SelfDefensives = A.MakeFunctionCachedStatic(SelfDefensives)
+
+local function Interrupts(unitID)
+	local ChargeBash = A.GetToggle(2, "ChargeBash")
+	local useKick, useCC, useRacial, notInterruptable, castRemainsTime = A.InterruptIsValid(unitID, "Main", nil, true)   
+    local inCombat = Unit(player):CombatTime() > 0
+	
+	if useCC then
+	
+		if ChargeBash and Player:Mana() > (A.DireBearForm:GetSpellPowerCost() + A.CatForm:GetSpellPowerCost()) then
+			if A.FeralChargeCat:IsReady(unitID) and not InMelee() and not Player:IsStealthed() and Unit(player):HasBuffs(A.CatForm.ID) > 0 and A.Furor:GetTalentRank() >= 5 and (A.Bash:GetCooldown() <= A.GetGCD() or not inCombat) then
+				return A.FeralChargeBear
+			end
+			
+			if A.FeralChargeBear:GetCooldown() == 0 and not InMelee() and ((not Player:IsStance(1) and A.Furor:GetTalentRank() >= 5) or Player:IsStance(1)) and A.Bash:GetCooldown() <= A.GetGCD() then
+				return A.FeralChargeBear
+			end
+			
+			if A.Prowl:IsReady(player) and not inCombat and not Player:IsStealthed() and A.FeralChargeCat:GetCooldown() > 0 then
+				return A.Prowl
+			end
+			
+			if A.Pounce:IsReady(unitID) then
+				return A.Pounce
+			end
+		end
+		
+		if A.Bash:GetCooldown() == 0 and not A.Bash:IsBlocked() then
+			if Player:IsStance(1) then
+				return A.Bash
+			elseif not Player:IsStance(1) and castRemainsTime >= A.GetGCD() and A.Furor:GetTalentRank() >= 5 then 
+				return A.Bash
+			end
+		end 
+		
+	end
+   
     if useRacial and A.WarStomp:AutoRacial(unitID) then 
         return A.WarStomp
     end    
@@ -290,74 +345,94 @@ local function FerociousBiteDamage()
 	local base, posBuff, negBuff = UnitAttackPower(player)
     local effective = (base or 0) + (posBuff or 0) + (negBuff or 0)
 	local combopoint = Player:ComboPoints()
-
-	--R1 = 14+36*combopoint+(0.07*combopoint)*effective
-	--R2 = 20+59*combopoint+(0.07*combopoint)*effective
-	--R3 = 30+92*combopoint+(0.07*combopoint)*effective
-	--R4 = 45+128*combopoint+(0.07*combopoint)*effective
-	--R5 = 52+147*combopoint+(0.07*combopoint)*effective
-	--R6 = 57+169*combopoint+(0.07*combopoint)*effective
-	--R7 = 98+236*combopoint+(0.07*combopoint)*effective
-    --R8 = 120+290*combopoint+(0.07*combopoint)*effective
+	local FeralAggressionDmg = A.FeralAggression:GetTalentRank() * 3 / 100
+	local GlobalDamage = A.GetToggle(2, "GlobalDamage")
     
 	if A.FerociousBite:GetSpellRank() == 0 then
 		return 0
 	elseif A.FerociousBite:GetSpellRank() == 1 then
-		return 14+36*combopoint+(0.07*combopoint)*effective
+		return 14+36*combopoint+(0.07*combopoint)*effective*(1+FeralAggressionDmg)*GlobalDamage
 	elseif A.FerociousBite:GetSpellRank() == 2 then
-		return 20+59*combopoint+(0.07*combopoint)*effective
+		return 20+59*combopoint+(0.07*combopoint)*effective*(1+FeralAggressionDmg)*GlobalDamage
 	elseif A.FerociousBite:GetSpellRank() == 3 then
-		return 30+92*combopoint+(0.07*combopoint)*effective
+		return 30+92*combopoint+(0.07*combopoint)*effective*(1+FeralAggressionDmg)*GlobalDamage
 	elseif A.FerociousBite:GetSpellRank() == 4 then
-		return 45+128*combopoint+(0.07*combopoint)*effective
+		return 45+128*combopoint+(0.07*combopoint)*effective*(1+FeralAggressionDmg)*GlobalDamage
 	elseif A.FerociousBite:GetSpellRank() == 5 then
-		return 52+147*combopoint+(0.07*combopoint)*effective
+		return 52+147*combopoint+(0.07*combopoint)*effective*(1+FeralAggressionDmg)*GlobalDamage
 	elseif A.FerociousBite:GetSpellRank() == 6 then
-		return 57+169*combopoint+(0.07*combopoint)*effective
+		return 57+169*combopoint+(0.07*combopoint)*effective*(1+FeralAggressionDmg)*GlobalDamage
 	elseif A.FerociousBite:GetSpellRank() == 7 then
-		return 98+236*combopoint+(0.07*combopoint)*effective
+		return 98+236*combopoint+(0.07*combopoint)*effective*(1+FeralAggressionDmg)*GlobalDamage
 	elseif A.FerociousBite:GetSpellRank() == 8 then
-		return 120+290*combopoint+(0.07*combopoint)*effective		
+		return 120+290*combopoint+(0.07*combopoint)*effective*(1+FeralAggressionDmg)*GlobalDamage		
     end 
 end
 
-local function ForceHealingTarget(TARGET)
-    --local target = TARGET or nil
-    local CurrentHealers = A.HealingEngine.GetMembersByMode("HEALER")
-    local CurrentDamagers = A.HealingEngine.GetMembersByMode("DAMAGER")
-    local CurrentTanks = A.HealingEngine.GetMembersByMode("TANK")
-    local CurrentMembers = A.HealingEngine.GetMembersAll()
-    healingTarget = "None"
-    healingTargetGUID = "None"
-    HealingEngine.SetTarget(healingTarget)
-    
-    if TARGET == "TANK" then
-        healingTarget = CurrentTanks[1].Unit
-        healingTargetGUID = CurrentTanks[1].GUID
-        HealingEngine.SetTarget(healingTarget)
-        return
-    end
-    
-    if TARGET == "DPS" and CurrentDamagers[1].HP < hp then
-        healingTarget = CurrentDamagers[1].Unit
-        healingTargetGUID = CurrentDamagers[1].GUID
-        HealingEngine.SetTarget(healingTarget)
-        return
-    end
-    
-    if TARGET == "HEAL" and CurrentHealers[1].HP < hp then
-        healingTarget = CurrentHealers[1].Unit
-        healingTargetGUID = CurrentHealers[1].GUID
-        HealingEngine.SetTarget(healingTarget)
-        return
-    end
-    
-    if TARGET == "ALL" and CurrentMembers[1].HP < 99 then
-        healingTarget = CurrentMembers[1].Unit
-        healingTargetGUID = CurrentMembers[1].GUID
-        HealingEngine.SetTarget(healingTarget)
-        return
-    end
+local function SpenderCPFinal()
+
+	local SpenderCP = A.GetToggle(2, "SpenderCP")
+
+	if SpenderCP > 5 then
+		if A.PrimalFury:GetTalentRank() >= 2 then
+			return 4
+		end
+	end
+	
+	return SpenderCP
+
+end
+
+
+--################
+--### TRINKETS ###
+--################
+local function UseTrinkets(unitID)
+	local TrinketType1 = A.GetToggle(2, "TrinketType1")
+	local TrinketType2 = A.GetToggle(2, "TrinketType2")
+	local TrinketValue1 = A.GetToggle(2, "TrinketValue1")
+	local TrinketValue2 = A.GetToggle(2, "TrinketValue2")	
+
+	if A.Trinket1:IsReady(unitID) then
+		if TrinketType1 == "Damage" then
+			if A.BurstIsON(unitID) and A.IsUnitEnemy(unitID) and A.LightningBolt:IsInRange() then
+				return A.Trinket1
+			end
+		elseif TrinketType1 == "Friendly" and A.IsUnitFriendly(unitID) then
+			if Unit(unitID):HealthPercent() <= TrinketValue1 then
+				return A.Trinket1
+			end	
+		elseif TrinketType1 == "SelfDefensive" then
+			if Unit(player):HealthPercent() <= TrinketValue1 then
+				return A.Trinket1
+			end	
+		elseif TrinketType1 == "ManaGain" then
+			if Unit(player):PowerPercent() <= TrinketValue1 then
+				return A.Trinket1
+			end
+		end	
+	end
+
+	if A.Trinket2:IsReady(unitID) then
+		if TrinketType2 == "Damage" then
+			if A.BurstIsON(unitID) and A.IsUnitEnemy(unitID) and A.LightningBolt:IsInRange() then
+				return A.Trinket2
+			end
+		elseif TrinketType2 == "Friendly" and A.IsUnitFriendly(unitID) then
+			if Unit(unitID):HealthPercent() <= TrinketValue2 then
+				return A.Trinket2
+			end	
+		elseif TrinketType2 == "SelfDefensive" then
+			if Unit(player):HealthPercent() <= TrinketValue2 then
+				return A.Trinket2
+			end	
+		elseif TrinketType2 == "ManaGain" then
+			if Unit(player):PowerPercent() <= TrinketValue2 then
+				return A.Trinket2
+			end
+		end	
+	end
+
 end
 
 --- ======= ACTION LISTS =======
@@ -448,15 +523,33 @@ A[3] = function(icon, isMulti)
     --##### OOC #####
     --###############    
 
+	if A.MarkoftheWild:IsReady(target) and Unit(target):HasBuffs(A.MarkoftheWild.ID) == 0 and Unit(target):HasBuffs(A.GiftoftheWild.ID) == 0 and not inCombat and not Unit(target):IsNPC() and not Unit(target):IsTotem() then
+		return A.MarkoftheWild:Show(icon)
+	end	
+	
+	if A.Thorns:IsReady(target) and Unit(target):HasBuffs(A.Thorns.ID) == 0 and not inCombat and not Unit(target):IsNPC() and not Unit(target):IsTotem() then
+		return A.Thorns:Show(icon)
+	end	
+
 	local AutoForm = A.GetToggle(2, "AutoForm")
+
+	--BearWeaving FailSafe
+	local BearWeaving = A.GetToggle(2, "BearWeaving")
+	if BearWeaving and (Player:Energy() >= 70 or Unit(target):HasDeBuffs(A.Rip.ID, true) <= 3) then
+		Temp.BearWeavingShift = false
+	end
+	
+	if BearWeaving and Player:Energy() < 40 and Unit(player):HasBuffs(A.Clearcasting.ID) == 0 and Unit(target):HasDeBuffs(A.Rip.ID, true) > 3.5 and Unit(player):HasBuffs(A.Berserk.ID) == 0 and not BearFormActive and Player:Mana() > (A.DireBearForm:GetSpellPowerCost() + A.CatForm:GetSpellPowerCost()) then
+		Temp.BearWeavingShift = true
+	end
 
 	if A.DireBearForm:IsReady(player) and Unit(player):HasDeBuffs("Rooted") >= 3 and not Temp.UsedReshift then
 		Temp.UsedReshift = true
 		return A.DireBearForm:Show(icon)
 	end 
 	
-	if AutoForm == "CatForm" and A.CatForm:IsReady(player) and (Player:IsStance(0) or (Player:IsStance(1) and Temp.UsedReshift)) then
-		Temp.UsedReshift = false	
+	if AutoForm == "CatForm" and A.CatForm:IsReady(player) and (Player:IsStance(0) or (Player:IsStance(1) and Temp.UsedReshift)) and not Temp.BearWeavingShift then
+		Temp.UsedReshift = false
 		return A.CatForm:Show(icon)
 	end 	
 
@@ -486,15 +579,7 @@ A[3] = function(icon, isMulti)
 	
 	if not A.Berserk:IsReady(player) or not A.TigersFury:IsReady(player) then
 		Temp.OpenerRotation = false
-	end
-
-	if A.MarkoftheWild:IsReady(target) and Unit(target):HasBuffs(A.MarkoftheWild.ID) == 0 and Unit(target):HasBuffs(A.GiftoftheWild.ID) == 0 and not inCombat and not Unit(target):IsNPC() and not Unit(target):IsTotem() then
-		return A.MarkoftheWild:Show(icon)
 	end	
-	
-	if A.Thorns:IsReady(target) and Unit(target):HasBuffs(A.Thorns.ID) == 0 and not inCombat and not Unit(target):IsNPC() and not Unit(target):IsTotem() then
-		return A.Thorns:Show(icon)
-	end		
     
     ------------------------------------------------------
     ---------------- ENEMY UNIT ROTATION -----------------
@@ -506,10 +591,28 @@ A[3] = function(icon, isMulti)
 		local SpecSelect = A.GetToggle(2, "SpecSelect")
 		local isMoving = Player:IsMoving()
 		
-		local FaerieFireMissing = Unit(unitID):HasDeBuffs(A.FaerieFireFeral.ID) < A.GetGCD() and Unit(unitID):HasDeBuffs(A.FaerieFire.ID) < A.GetGCD()
+		local BearFormActive = Player:IsStance(1)
+		local FaerieFireMissing = Unit(unitID):HasDeBuffs(A.FaerieFireFeral.ID) == 0 and Unit(unitID):HasDeBuffs(A.FaerieFire.ID) == 0
 		local Pooling = (Unit(unitID):HasDeBuffs(A.Rake.ID, true) < 3 and Player:Energy() < 45) or (Unit(unitID):HasDeBuffs(A.Rake.ID, true) < 2 and Player:Energy() < 55) or (Unit(unitID):HasDeBuffs(A.Rake.ID, true) < 1 and Player:Energy() < 65)
 		local BleedMissing = Unit(unitID):HasDeBuffs(A.Rake.ID, true) == 0 or Unit(unitID):HasDeBuffs(A.Rip.ID, true) == 0
-			
+		local SpenderCP = SpenderCPFinal()
+		
+		local DoInterrupt = Interrupts(unitID)
+		if DoInterrupt then 
+			return DoInterrupt:Show(icon)
+		end
+
+		local UseTrinket = UseTrinkets(unitID)
+		if UseTrinket then
+			return UseTrinket:Show(icon)
+		end
+
+        -- Defensive
+        local SelfDefensive = SelfDefensives()
+        if SelfDefensive then 
+            return SelfDefensive:Show(icon)
+        end 
+
 		--BALANCE
 		if SpecSelect == "Balance" or SpecSelect == "Restoration" or (SpecSelect == "Auto" and (Player:IsStance(0) or Player:IsStance(4))) then
 			
@@ -523,7 +626,8 @@ A[3] = function(icon, isMulti)
 			end
 			
 			--Starfall on CD (toggle option).
-			if A.Starfall:IsReady(player) and UseAoE and canCast and AtRange() then
+			local StarfallAoE = A.GetToggle(2, "StarfallAoE")
+			if A.Starfall:IsReady(player) and UseAoE and canCast and AtRange() and (StarfallAoE and (MultiUnits:GetByRangeInCombat(36, 3) >= 3 or Unit(unitID):IsBoss()) or not StarfallAoE) then
 				return A.Starfall:Show(icon)
 			end
 			
@@ -575,7 +679,7 @@ A[3] = function(icon, isMulti)
 				--[2] = Safer
 				--[3] = None
 			
-			if A.CatForm:IsReady(player) and AutoForm == "CatForm" and Unit(player):HasBuffs(A.CatForm.ID, true) == 0 then
+			if A.CatForm:IsReady(player) and AutoForm == "CatForm" and Unit(player):HasBuffs(A.CatForm.ID, true) == 0 and not Temp.BearWeavingShift then
 				return A.CatForm:Show(icon)
 			end			
 			
@@ -583,7 +687,7 @@ A[3] = function(icon, isMulti)
 				--Spam until Omen of Clarity
 				
 				--Tiger's Fury
-				if A.TigersFury:IsReady(player) and Player:Energy() <= 15 then
+				if A.TigersFury:IsReady(player) and Player:Energy() <= 15 and ((Unit(unitID):Health() > FerociousBiteDamage() and A.FerociousBite:IsTalentLearned()) or not A.FerociousBite:IsTalentLearned())	then
 					return A.TigersFury:Show(icon)
 				end
 				--Berserk
@@ -592,7 +696,7 @@ A[3] = function(icon, isMulti)
 				end
 				
 				--MangleCat
-				if A.MangleCat:IsReady(unitID) and A.MangleCat:AbsentImun(unitID, Temp.TotalAndPhys) and Unit(unitID):HasDeBuffs(A.MangleCat.ID, true) < A.GetGCD() and (BleedMissing or Player:ComboPoints() < 5) then
+				if A.MangleCat:IsReady(unitID) and A.MangleCat:AbsentImun(unitID, Temp.TotalAndPhys) and Unit(unitID):HasDeBuffs(A.MangleCat.ID) == 0 and Unit(unitID):HasDeBuffs(A.MangleBear.ID) == 0 and Unit(unitID):HasDeBuffs(A.Trauma.ID) == 0 and (BleedMissing or Player:ComboPoints() < 5) then
 					return A.MangleCat:Show(icon)
 				end
 				--Rake
@@ -618,17 +722,17 @@ A[3] = function(icon, isMulti)
 			end
 			
 			--Boss Opener Safe
-			if DPSOpener == "Safer" and Temp.OpenerRotation and InMelee() then
+			if DPSOpener == "Safer" and Temp.OpenerRotation and InMelee() and Unit(player):HasBuffs(A.CatForm.ID, true) > 0 then
 				--Berserk
 				if A.Berserk:IsReady(player) then
 					return A.Berserk:Show(icon)
 				end
 				--Tiger's Fury
-				if A.TigersFury:IsReady(player) and Player:Energy() <= 15 then
+				if A.TigersFury:IsReady(player) and Player:Energy() <= 15 and ((Unit(unitID):Health() > FerociousBiteDamage() and A.FerociousBite:IsTalentLearned()) or not A.FerociousBite:IsTalentLearned()) then
 					return A.TigersFury:Show(icon)
 				end						
 				--MangleCat
-				if A.MangleCat:IsReady(unitID) and A.MangleCat:AbsentImun(unit, Temp.TotalAndPhys) and Unit(unitID):HasDeBuffs(A.MangleCat.ID, true) < A.GetGCD() and (BleedMissing or Player:ComboPoints() < 5) then
+				if A.MangleCat:IsReady(unitID) and A.MangleCat:AbsentImun(unit, Temp.TotalAndPhys) and Unit(unitID):HasDeBuffs(A.MangleCat.ID) == 0 and Unit(unitID):HasDeBuffs(A.MangleBear.ID) == 0 and Unit(unitID):HasDeBuffs(A.Trauma.ID) == 0 and (BleedMissing or Player:ComboPoints() < 5) then
 					return A.MangleCat:Show(icon)
 				end
 				--Savage Roar if 2 CP.
@@ -636,7 +740,7 @@ A[3] = function(icon, isMulti)
 					return A.SavageRoar:Show(icon)
 				end		
 				--Rip at 5 CP.
-				if A.Rip:IsReady(unitID) and A.Rip:AbsentImun(unitID, Temp.TotalAndPhys) and Player:ComboPoints() >= 5 and Unit(unitID):HasDeBuffs(A.Rip.ID, true) < A.GetGCD() then
+				if A.Rip:IsReady(unitID) and A.Rip:AbsentImun(unitID, Temp.TotalAndPhys) and Player:ComboPoints() >= SpenderCP and Unit(unitID):HasDeBuffs(A.Rip.ID, true) < A.GetGCD() then
 					return A.Rip:Show(icon)
 				end	
 				--Ferocious Bite 5 CP
@@ -655,22 +759,94 @@ A[3] = function(icon, isMulti)
 					Temp.OpenerRotation = false
 				end				
 			end
+			
+			--Bear Weaving
+			local BearWeaving = A.GetToggle(2, "BearWeaving")
+			local BearWeavingLacerate = A.GetToggle(2, "BearWeavingLacerate")
+			if A.Furor:GetTalentRank() >= 5 and BearWeaving then
+			
+				if (A.DireBearForm:IsReady(player) or A.BearForm:IsReady(player)) and Player:Energy() < 40 and Unit(player):HasBuffs(A.Clearcasting.ID) == 0 and Unit(unitID):HasDeBuffs(A.Rip.ID, true) > 3.5 and Unit(player):HasBuffs(A.Berserk.ID) == 0 and not BearFormActive and Player:Mana() > (A.DireBearForm:GetSpellPowerCost() + A.CatForm:GetSpellPowerCost()) then
+					Temp.BearWeavingShift = true
+					return A.BearForm:Show(icon)
+				end
 				
+				if BearFormActive and not BearWeavingLacerate then
+					if A.CatForm:IsReady(player) and Player:Energy() >= 70 or Unit(unitID):HasDeBuffs(A.Rip.ID, true) <= 3 or Unit(player):HasBuffs(A.Clearcasting.ID) > 0 then
+						Temp.BearWeavingShift = false
+						return A.CatForm:Show(icon)
+					end
+					
+					if A.Enrage:IsReady(player) then
+						return A.Enrage:Show(icon)
+					end
+					
+					if A.MangleBear:IsReady(unitID) then
+						return A.MangleBear:Show(icon)
+					end
+					
+					if A.Lacerate:IsReady(unitID) then
+						return A.Lacerate:Show(icon)
+					end
+					
+					if A.Maul:IsReady(unitID) and not A.Maul:IsSpellCurrent() and ((A.MangleBear:IsTalentLearned() and A.MangleBear:GetCooldown() > 0) or not A.MangleBear:IsTalentLearned()) then
+						return A.Maul:Show(icon)
+					end
+				end
+				
+				if BearFormActive and BearWeavingLacerate then
+					if A.Lacerate:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.Lacerate.ID, true) < 3 then
+						return A.Lacerate:Show(icon)
+					end
+					
+					if A.CatForm:IsReady(player) and (Player:Energy() >= 70 or Unit(unitID):HasDeBuffs(A.Rip.ID, true) <= 3) then
+						Temp.BearWeavingShift = false
+						return A.CatForm:Show(icon)
+					end
+
+					if A.Lacerate:IsReady(unitID) and Unit(unitID):HasDeBuffsStacks(A.Lacerate.ID, true) < 5 then
+						return A.Lacerate:Show(icon)
+					end
+					
+					if A.Lacerate:IsReady(unitID) and Unit(unitID):HasDeBuffs(A.Lacerate.ID, true) < 9 then
+						return A.Lacerate:Show(icon)
+					end					
+
+					if A.CatForm:IsReady(player) and (Player:Rage() < 10 or Unit(player):HasBuffs(A.Clearcasting.ID) > 0) then
+						Temp.BearWeavingShift = false
+						return A.CatForm:Show(icon)
+					end
+					
+					if A.MangleBear:IsReady(unitID) then
+						return A.MangleBear:Show(icon)
+					end
+					
+					if A.Maul:IsReady(unitID) and not A.Maul:IsSpellCurrent() then
+						return A.Maul:Show(icon)
+					end
+				end
+			end
+			
 			--Rotation
-				--FerociousBite if will kill
-				if A.FerociousBite:IsReady(unitID) and Unit(unitID):Health() <= FerociousBiteDamage() and Player:ComboPoints() > 0 then
+			if Unit(player):HasBuffs(A.CatForm.ID, true) > 0 then
+				local FBBerserk = A.GetToggle(2, "FBBerserk")
+				--FerociousBite if will kill or Berserk active
+				if A.FerociousBite:IsReady(unitID) and ((Unit(unitID):Health() <= FerociousBiteDamage() and Player:ComboPoints() > 0) or (FBBerserk and Unit(player):HasBuffs(A.Berserk.ID) > 0)) then
 					return A.FerociousBite:Show(icon)
-				end			
+				end		
 				--FaerieFire
 				if inCombat and A.FaerieFireFeral:IsReady(unitID) and FaerieFireMissing then
 					return A.FaerieFireFeral:Show(icon)
 				end
-				--Prowl/Pounce open
-				if A.Pounce:IsReady(unitID) and Unit(player):HasBuffs(A.Prowl.ID, true) > 0 then
+				--Stealth open
+				local StealthOpener = A.GetToggle(2, "StealthOpener")
+				if A.Ravage:IsReady(unitID) and StealthOpener == "Ravage" then
+					return A.Ravage:Show(icon)
+				end
+				if A.Pounce:IsReady(unitID) and StealthOpener == "Pounce" then
 					return A.Pounce:Show(icon)
 				end
 				--Energy < 30 use Tiger's Fury
-				if A.TigersFury:IsReady(player) and Player:Energy() <= 30 then
+				if A.TigersFury:IsReady(player) and InMelee() and Player:Energy() <= 30 and ((Unit(unitID):Health() > FerociousBiteDamage() and A.FerociousBite:IsTalentLearned()) or not A.FerociousBite:IsTalentLearned()) then
 					return A.TigersFury:Show(icon)
 				end	
 				--Berserk if energy > 50 and < 85 and Tiger's Fury buff < 2				
@@ -686,15 +862,16 @@ A[3] = function(icon, isMulti)
 					return A.SavageRoar:Show(icon)
 				end
 				--Mangle if no debuff
-				if A.MangleCat:IsReady(unitID) and A.MangleCat:AbsentImun(unitID, Temp.TotalAndPhys) and Unit(unitID):HasDeBuffs(A.MangleCat.ID, true) < A.GetGCD() and (BleedMissing or Player:ComboPoints() < 5) then
+				if A.MangleCat:IsReady(unitID) and A.MangleCat:AbsentImun(unitID, Temp.TotalAndPhys) and Unit(unitID):HasDeBuffs(A.MangleCat.ID) == 0 and Unit(unitID):HasDeBuffs(A.MangleBear.ID) == 0 and Unit(unitID):HasDeBuffs(A.Trauma.ID) == 0 and (BleedMissing or Player:ComboPoints() < 5) then
 					return A.MangleCat:Show(icon)
 				end						
 				--Rip at 5 CP
-				if A.Rip:IsReady(unitID) and A.Rip:AbsentImun(unitID, Temp.TotalAndPhys) and Player:ComboPoints() >= 5 and Unit(unitID):HasDeBuffs(A.Rip.ID, true) == 0 then
+				if A.Rip:IsReady(unitID) and A.Rip:AbsentImun(unitID, Temp.TotalAndPhys) and Player:ComboPoints() >= SpenderCP and Unit(unitID):HasDeBuffs(A.Rip.ID, true) == 0 then
 					return A.Rip:Show(icon)
 				end	
 				--FB at 5 CP if Rip/SR > 8 seconds
-				if A.FerociousBite:IsReady(unitID) and A.FerociousBite:AbsentImun(unitID, Temp.TotalAndPhys) and Player:ComboPoints() >= 5 and Unit(unitID):HasDeBuffs(A.Rip.ID, true) > 8 and (Unit(player):HasBuffs(A.SavageRoar.ID, true) > 8 and A.SavageRoar:IsSpellLearned()) then
+				local FBTimer = A.GetToggle(2, "FBTimer")
+				if A.FerociousBite:IsReady(unitID) and A.FerociousBite:AbsentImun(unitID, Temp.TotalAndPhys) and Player:ComboPoints() >= SpenderCP and Unit(unitID):HasDeBuffs(A.Rip.ID, true) > FBTimer and ((Unit(player):HasBuffs(A.SavageRoar.ID, true) > FBTimer and A.SavageRoar:IsSpellLearned() or not A.SavageRoar:IsSpellLearned())) then
 					return A.FerociousBite:Show(icon)
 				end	
 				--Rake if no debuff and CP < 5
@@ -720,7 +897,8 @@ A[3] = function(icon, isMulti)
 				--Claw if nothing else
 				if A.Claw:IsReady(unitID) and not Pooling and A.Claw:AbsentImun(unitID, Temp.TotalAndPhys) and Player:Energy() > A.Shred:GetSpellPowerCost() then
 					return A.Claw:Show(icon)
-				end				
+				end	
+			end
 		end
 		
 		--BEAR
@@ -767,7 +945,7 @@ A[3] = function(icon, isMulti)
 				return A.Lacerate:Show(icon)
 			end
 			--Maul if no debuff and enemies >= 2
-			if A.Maul:IsReady(unitID) and InMelee() and MultiUnits:GetByRange(10, 3) >= 2 and Unit(unitID):HasDeBuffs(A.Maul.ID, true) < A.GetGCD() then
+			if A.Maul:IsReady(unitID) and InMelee() and not A.Maul:IsSpellCurrent() and MultiUnits:GetByRange(10, 3) >= 2 and Unit(unitID):HasDeBuffs(A.Maul.ID, true) < A.GetGCD() then
 				return A.Maul:Show(icon)
 			end
 			--SwipeBear if enemies >= 2
@@ -775,7 +953,7 @@ A[3] = function(icon, isMulti)
 				return A.SwipeBear:Show(icon)
 			end			
 			--Maul
-			if A.Maul:IsReady(unitID) then
+			if A.Maul:IsReady(unitID) and not A.Maul:IsSpellCurrent() then
 				return A.Maul:Show(icon)
 			end
 		end
@@ -806,7 +984,7 @@ A[3] = function(icon, isMulti)
 		end
 		
 		--Emergency
-		if inCombat and canCast and A.NaturesSwiftness:IsReady(player) and A.HealingTouch:IsReadyByPassGCD(unitID) then
+		if inCombat and canCast and A.NaturesSwiftness:IsReady(player) and A.HealingTouch:IsReadyByPassCastGCD(unitID) then
 			if Unit(unitID):HealthPercent() < Emergency then
 				return A.NaturesSwiftness:Show(icon)
 			end
@@ -890,28 +1068,41 @@ A[3] = function(icon, isMulti)
 			end
 		end
 		
-		if A.Rejuvenation:IsReady(unitID) and canCast and Unit(unitID):HealthPercent() < RejuvHP and Unit(unitID):HasBuffs(A.Rejuvenation.ID, true) == 0 then
+		if A.Rejuvenation:IsReady(unitID) and canCast and Unit(unitID):HealthPercent() <= RejuvHP and Unit(unitID):HasBuffs(A.Rejuvenation.ID, true) == 0 then
 			return A.Rejuvenation:Show(icon)
 		end
 		
 		--Regrowth
-		if A.Regrowth:IsReady(unitID) and canCast and Unit(unitID):HealthPercent() < RegrowthHP and Unit(unitID):HasBuffs(A.Regrowth.ID, true) == 0 then
+		if A.Regrowth:IsReady(unitID) and canCast and Unit(unitID):HealthPercent() <= RegrowthHP and Unit(unitID):HasBuffs(A.Regrowth.ID, true) == 0 then
 			return A.Regrowth:Show(icon)
 		end
 		
 		--Nourish
-		if A.Nourish:IsReady(unitID) and canCast and Unit(unitID):HealthPercent() <= NourishHP then
+		if A.Nourish:IsReady(unitID) and canCast and Unit(unitID):HealthPercent() <= NourishHP and not isMoving and Unit(unitID):HasBuffs(A.Regrowth.ID or A.Rejuvenation.ID, true) > 0 then
 			return A.Nourish:Show(icon)
 		end
 	
 	end
      
-    if A.IsUnitEnemy("target") then 
-        return EnemyRotation("target")
-    elseif A.IsUnitFriendly("target") then
-        return HealingRotation("target")
-    end 
-		
+	if A.IsUnitFriendly(target) then 
+		unitID = target 
+		if HealingRotation(unitID) then 
+			return true 
+		end 
+	end	
+	if A.IsUnitFriendly(focus) then 
+		unitID = focus 
+		if HealingRotation(unitID) then 
+			return true 
+		end 
+	end      
+	if A.IsUnitEnemy(target) then 
+		unitID = target 
+		if EnemyRotation(unitID) then 
+			return true 
+		end 
+	end
+	
     end
 -- Finished
 

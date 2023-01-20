@@ -24,7 +24,7 @@ local select, setmetatable							= select, setmetatable
 
 A.Data.ProfileEnabled[Action.CurrentProfile] = true
 A.Data.ProfileUI = {    
-    DateTime = "v1.15 (19 September 2022)",
+    DateTime = "v1.9 (15 October 2022)",
     -- Class settings
     [2] = {        
             { -- GENERAL HEADER
@@ -128,7 +128,120 @@ A.Data.ProfileUI = {
                 {
                     E = "LayoutSpace",                                                                         
                 },
-            },			
+            },	 
+            {
+                {
+                    E = "Header",
+                    L = {
+                        ANY = " ====== DEFENSIVES ====== ",
+                    },
+                },
+            },
+            {
+                { -- Barkskin
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "BarkskinHP",
+                    DBV = 50,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Barkskin",
+                    },
+                    TT = { 
+                        ANY = "HP (%) to use Barkskin.", 
+                    },                     
+                    M = {},
+                },
+            },	
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
+            },	             
+			{ -- TRINKET HEADER
+                {
+                    E = "Header",
+                    L = {
+                        ANY = " ====== TRINKETS ====== ",
+                    },
+                },
+            },
+			{
+				{ -- Trinket Type 1
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Damage", value = "Damage" },
+						{ text = "Friendly", value = "Friendly" },
+						{ text = "Self Defensive", value = "SelfDefensive" },
+						{ text = "Mana Gain", value = "ManaGain" },						
+                    },
+                    DB = "TrinketType1",
+                    DBV = "Damage",
+                    L = { 
+                        ANY = "First Trinket",
+                    }, 
+                    TT = { 
+                        ANY = "Pick what type of trinket you have in your first/upper trinket slot (only matters for trinkets with Use effects).", 
+                    }, 
+                    M = {},
+                },	
+				{ -- Trinket Type 2
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Damage", value = "Damage" },
+						{ text = "Friendly", value = "Friendly" },
+						{ text = "Self Defensive", value = "SelfDefensive" },
+						{ text = "Mana Gain", value = "ManaGain" },						
+                    },
+                    DB = "TrinketType2",
+                    DBV = "Damage",
+                    L = { 
+                        ANY = "Second Trinket",
+                    }, 
+                    TT = { 
+                        ANY = "Pick what type of trinket you have in your second/lower trinket slot (only matters for trinkets with Use effects).", 
+                    }, 
+                    M = {},
+                },				
+			},			
+			{
+                { -- TrinketValue1
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "TrinketValue1",
+                    DBV = 40,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "First Trinket Value",
+                    },
+                    TT = { 
+                        ANY = "HP/Mana (%) to use your first trinket, based on what you've chosen for your trinket type. Damage trinkets will be used on burst targets.", 
+                    },                     
+                    M = {},
+                },	
+                { -- TrinketValue2
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 100,                            
+                    DB = "TrinketValue2",
+                    DBV = 40,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Second Trinket Value",
+                    },
+                    TT = { 
+                        ANY = "HP/Mana (%) to use your second trinket, based on what you've chosen for your trinket type. Damage trinkets will be used on burst targets.", 
+                    },                     
+                    M = {},
+                },					
+			},
+            { -- LAYOUT SPACE   
+                {
+                    E = "LayoutSpace",                                                                         
+                },
+            },	            	
 			{ -- PVE HEADER
                 {
                     E = "Header",
@@ -189,6 +302,20 @@ A.Data.ProfileUI = {
                     },
                 },
             },
+            {
+				{ -- Starfall AOE
+                    E = "Checkbox", 
+                    DB = "StarfallAoE",
+                    DBV = true,
+                    L = { 
+                        ANY = "Starfall AoE/Boss Only", 
+                    }, 
+                    TT = { 
+                        ANY = "Only use Starfall in AoE or in a boss fight."
+                    }, 
+                    M = {},
+                },				
+            },            
             { -- LAYOUT SPACE   
                 {
                     E = "LayoutSpace",                                                                         
@@ -213,28 +340,133 @@ A.Data.ProfileUI = {
                     DB = "CatOpener",
                     DBV = "Safer",
                     L = { 
-                        ANY = "Opener Type",
+                        ANY = "PvE Opener Type",
                     }, 
                     TT = { 
                         ANY = "Pick your opener type! Won't work until you've learned Savage Roar.", 
                     }, 
                     M = {},
                 },
+				{ -- StealthOpener
+                    E = "Dropdown",                                                         
+                    OT = {
+						{ text = "Pounce", value = "Pounce" },
+						{ text = "Ravage", value = "Ravage" },
+						{ text = "None", value = "None" },						
+                    },
+                    DB = "StealthOpener",
+                    DBV = "Pounce",
+                    L = { 
+                        ANY = "Stealth Opener",
+                    }, 
+                    TT = { 
+                        ANY = "Pick the next move to use out of stealth!", 
+                    }, 
+                    M = {},
+                },				
+			},
+			{
+                { -- GlobalDamage
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 2, 
+					Precision = 1,
+                    DB = "GlobalDamage",
+                    DBV = 1,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Global Damage Modifier",
+                    },
+                    TT = { 
+                        ANY = "Make this number higher if you wish to use Ferocious Bite earlier when finishing enemies. Calculations may not be 100% accurate so this slider enables you to manually adjust. Default is 1.", 
+                    },                     
+                    M = {},
+                },
+			},
+			{
+                { -- SpenderCP
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 6,                            
+                    DB = "SpenderCP",
+                    DBV = 6,
+                    ONOFF = true,
+                    L = { 
+                        ANY = "Finisher Combo Points",
+                    },
+                    TT = { 
+                        ANY = "Combo Points to use Rip/FB. Auto will use at 5 combo points without Primal Fury talent, 4 combo points with Primal Fury talent.", 
+                    },                     
+                    M = {},
+                },
+                { -- FBTimer
+                    E = "Slider",                                                     
+                    MIN = 0, 
+                    MAX = 10,                            
+                    DB = "FBTimer",
+                    DBV = 8,
+                    ONOFF = false,
+                    L = { 
+                        ANY = "Finisher Timer",
+                    },
+                    TT = { 
+                        ANY = "Amount of time in seconds remaining on Savage Roar/Rip before using Ferocious Bite. Default is 8 seconds.", 
+                    },                     
+                    M = {},
+                },				
 			},
 			{
 				{ -- FBBerserk
                     E = "Checkbox", 
                     DB = "FBBerserk",
-                    DBV = true,
+                    DBV = false,
                     L = { 
-                        ANY = "Ferocious Bite with Berserk", 
+                        ANY = "Ferocious Bite with Berserk"
                     }, 
                     TT = { 
-                        ANY = "Uses Ferocious Bite while Berserk is active, bypassing bleeds.", 
+                        ANY = "Use Ferocious Bite as your spender whenever Berserk is active."
+                    }, 
+                    M = {},
+                },				
+				{ -- ChargeBash
+                    E = "Checkbox", 
+                    DB = "ChargeBash",
+                    DBV = true,
+                    L = { 
+                        ANY = "Feral Charge Interrupt"
+                    }, 
+                    TT = { 
+                        ANY = "Use Feral Charge to get into Bash range to interrupt your target. Requires Furor talent 5/5 if in Cat Form."
+                    }, 
+                    M = {},
+                },	
+            },				
+			{				
+				{ -- BearWeaving
+                    E = "Checkbox", 
+                    DB = "BearWeaving",
+                    DBV = true,
+                    L = { 
+                        ANY = "Bear Weaving"
+                    }, 
+                    TT = { 
+                        ANY = "Use Bear Weaving rotation when Furor talent is 5/5."
+                    }, 
+                    M = {},
+                },	
+				{ -- BearWeaving
+                    E = "Checkbox", 
+                    DB = "BearWeavingLacerate",
+                    DBV = false,
+                    L = { 
+                        ANY = "Lacerate while Bear Weaving"
+                    }, 
+                    TT = { 
+                        ANY = "Maintain 5/5 Lacerate while Bear Weaving. Only use this if your fight is going to last longer than 100 seconds."
                     }, 
                     M = {},
                 },
-			},
+			},		
 			{ -- RESTO HEADER
                 {
                     E = "Header",
