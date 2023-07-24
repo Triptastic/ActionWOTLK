@@ -546,7 +546,7 @@ A[3] = function(icon, isMulti)
     
 		local CorruptionActive = Unit(unitID):HasDeBuffs(A.Corruption.ID, true) > 0
 		local ImmolateDown = Unit(unitID):HasDeBuffs(A.Immolate.ID, true) == 0
-		local UARefresh = Player:GetDeBuffsUnitCount(A.UnstableAffliction.ID) < 1 
+		local UAActive = Player:GetDeBuffsUnitCount(A.UnstableAffliction.ID) >= 1 
 		local TTDCorruption = A.GetToggle(2, "TTDCorruption")
 		local TTDUA = A.GetToggle(2, "TTDUA")
 		local TTDImmolate = A.GetToggle(2, "TTDImmolate")		
@@ -636,19 +636,19 @@ A[3] = function(icon, isMulti)
 				return A.Haunt:Show(icon)
 			end
 
-			if A.UnstableAffliction:IsReady(unitID) and not isMoving and canCast and Unit(unitID):TimeToDie() >= TTDUA and UARefresh then
+			if A.UnstableAffliction:IsReady(unitID) and not isMoving and canCast and Unit(unitID):TimeToDie() >= TTDUA and not UAActive then
 				return A.UnstableAffliction:Show(icon)
-			end
-			
-			if A.Corruption:IsReady(unitID) and not CorruptionActive and canCast and Unit(unitID):TimeToDie() >= TTDCorruption then
-				if (A.ImprovedShadowBolt:IsTalentLearned() and Unit(unitID):HasDeBuffs(A.ImprovedShadowBolt.ID)) or not A.ImprovedShadowBolt:IsTalentLearned() then
-					return A.Corruption:Show(icon)
-				end
 			end
 			
 			local DoCurse = CastCurse()
 			if DoCurse and canCast then
 				return DoCurse:Show(icon)
+			end
+
+			if A.Corruption:IsReady(unitID) and not CorruptionActive and canCast and Unit(unitID):TimeToDie() >= TTDCorruption then
+				if (A.ImprovedShadowBolt:IsTalentLearned() and Unit(unitID):HasDeBuffs(A.ImprovedShadowBolt.ID)) or not A.ImprovedShadowBolt:IsTalentLearned() then
+					return A.Corruption:Show(icon)
+				end
 			end
 			
 			if A.DrainSoul:IsReady(unitID) and Unit(unitID):HealthPercent() < 25 and not isMoving and canCast and Unit(unitID):HasDeBuffs(A.Corruption.ID, true) > DrainSoulTickTime and ((CurseChoice == "Agony" and Unit(unitID):HasDeBuffs(A.CurseofAgony.ID, true) > DrainSoulTickTime) or CurseChoice ~= "Agony") then
